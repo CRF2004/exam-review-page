@@ -30,7 +30,7 @@ python3 generate_review_page.py --scan
 
 手动确认文件名和键名的映射关系，每个PDF需分配一个**唯一的中文标识**（如"讲义一"、"参考资料"），用于笔记中的跨文件引用。
 
-### Step 1~2: 分析每个 PDF 的结构与页码偏移
+### Step 1~2: 分析每个 PDF 的结构与内容目录
 
 对每个 PDF 独立分析。使用 pdfplumber（已安装）：
 
@@ -40,8 +40,8 @@ import pdfplumber
 path = '讲义一.pdf'
 with pdfplumber.open(path) as pdf:
     print(f'{path}: {len(pdf.pages)} pages')
-    for i in range(min(30, len(pdf.pages))):
-        text = pdf.pages[i].extract_text()[:200] if pdf.pages[i].extract_text() else ''
+    for i in range(min(len(pdf.pages), 20)):
+        text = pdf.pages[i].extract_text()[:200] if pdf.pages[i].extract_text() else '(empty)'
         first_line = text.strip().split(chr(10))[0] if text.strip() else '(empty)'
         print(f'PDF page {i+1}: {repr(first_line[:90])}')
 "
@@ -49,31 +49,9 @@ with pdfplumber.open(path) as pdf:
 
 关键信息要提取：
 - **总页数**
-- **印刷页码偏移**：正文第一页（印刷第1页）对应PDF第几页
+- **各页主题**：记录每页的章节标题或首行内容，建立内容→页码的概览
 
-确定偏移量（对每个PDF分别执行）：
-
-```bash
-python3 -c "
-import pdfplumber, re
-path = '讲义一.pdf'
-with pdfplumber.open(path) as pdf:
-    for i in range(len(pdf.pages)):
-        page = pdf.pages[i]
-        text = page.extract_text() or ''
-        lines = text.strip().split('\n')
-        for l in lines[-3:]:
-            l = l.strip()
-            if re.match(r'^\d{1,3}$', l):
-                num = int(l)
-                offset = (i+1) - num
-                if 0 <= offset <= 5:
-                    print(f'PDF page {i+1} -> printed page {num} (offset={offset:+d})')
-                    break
-"
-```
-
-取最频繁出现的 offset 值。对于印刷页码从1开始的PDF，常见offset=0（无偏移）；对于含封面/目录的PDF，offset可能为正数。
+> **页码策略**：直接使用 PDF 页码（第1页即PDF文件第1页），offset 统一设为 0。笔记中的 `p42` 即 PDF 第 42 页，与印刷页码无关。
 
 ### Step 3: 收集考点信息
 
@@ -92,7 +70,47 @@ with pdfplumber.open(path) as pdf:
 - 需要覆盖的章节范围
 - 重点/必考章节
 
-### Step 4: 生成考点笔记 (Markdown)
+### Step 4: 精确标定页码（关键词搜索法）
+
+生成考点笔记前，必须用关键词搜索精确定位每个考点的页码。方法：
+
+对每个考点，提取 2~5 个核心关键词，在所有 PDF 中逐页搜索，找出每个词实际出现的页面。
+
+```bash
+python3 -c "
+import pdfplumber, os
+from collections import defaultdict
+
+# 定义考点→关键词映射（根据实际考点修改）
+exam_points = {
+    '纳什均衡': ['纳什均衡', 'Nash', '划线法', '相互最优'],
+    '占优战略': ['占优', '劣战略', 'Dominant'],
+    # ... 按实际考点补充
+}
+
+base = '.'  # PDF 所在目录
+for fname in sorted(os.listdir(base)):
+    if not fname.endswith('.pdf'): continue
+    path = os.path.join(base, fname)
+    with pdfplumber.open(path) as pdf:
+        print(f'\\n=== {fname} ===')
+        for i in range(len(pdf.pages)):
+            text = pdf.pages[i].extract_text() or ''
+            for topic, keywords in exam_points.items():
+                hits = [kw for kw in keywords if kw in text]
+                if hits:
+                    first_line = text.strip().split(chr(10))[0][:60]
+                    print(f'  p{i+1}: {first_line}')
+                    print(f'    → [{topic}] 命中: {\", \".join(hits)}')
+"
+```
+
+依据搜索结果确定页码范围：
+- **核心页**：关键词密集出现的页
+- **范围截止**：当连续多页无命中时截断
+- **避免"路过"页**：仅在其他话题中被顺带提及的页面不算
+
+### Step 6: 生成考点笔记 (Markdown)
 
 生成 `复习笔记_考点版.md`，格式如下：
 
@@ -101,6 +119,8 @@ with pdfplumber.open(path) as pdf:
 
 > 教材：博弈论补充讲义
 > 题型：选择/填空/简答/计算
+>
+> ⚠️ 页码为 PDF 文件页码（第1页即PDF第1页），与印刷页码无关。
 
 ## 一、基础理论
 
@@ -123,6 +143,8 @@ with pdfplumber.open(path) as pdf:
 
 文件标识必须是 **中文字符**（如 `讲义一`、`参考资料`），并且必须与脚本 `PDF_FILES` 配置中的键名完全一致。
 
+> 页码使用 PDF 文件页码（第1页=PDF第1页），所有 PDF 的 offset 均设为 0。
+
 在末尾附加按题型分类的速查表：
 - **选择题/填空题**：考点→核心要点
 - **简答题**：考点→关键话术
@@ -139,7 +161,7 @@ with pdfplumber.open(path) as pdf:
    - 不要在 LaTeX 公式中使用 `<` 可能导致 HTML 标签解析，改用 `\lt`
    - 所有 LaTeX 公式用 `$` 或 `$$` 包围
 
-### Step 5: 配置 `generate_review_page.py`
+### Step 6: 配置 `generate_review_page.py`
 
 从本仓库拷贝 `generate_review_page.py` 到工作目录，编辑顶部的 `PDF_FILES` 配置：
 
@@ -158,7 +180,7 @@ DEFAULT_PDF_KEY = "default"    # 默认打开的PDF
 |------|------|
 | **key**（字典键名） | 笔记中跨文件引用的标识，如 `讲义三 p42` 中的"讲义三" |
 | **file** | PDF 文件名（与脚本同目录） |
-| **offset** | 印刷页码 → PDF 页码偏移量（Step 1-2 确定） |
+| **offset** | PDF页码偏移量（统一设为 0，直接使用PDF页码） |
 | **label** | 左侧工具栏下拉框中显示的名称 |
 
 也可以自动扫描：
@@ -167,14 +189,14 @@ python3 generate_review_page.py --scan     # 查看扫描结果
 python3 generate_review_page.py --scan --apply  # 直接应用
 ```
 
-### Step 6: 运行脚本
+### Step 7: 运行脚本
 
 ```bash
 cd WORK_DIR
 python3 generate_review_page.py
 ```
 
-### Step 7: 启动 HTTP 服务器并提示用户
+### Step 8: 启动 HTTP 服务器并提示用户
 
 ```bash
 cd WORK_DIR
@@ -195,7 +217,7 @@ http://localhost:8080/复习笔记_考点版.html
 4. **面板拖拽**：中间分隔条可拖拽调整左右面板宽度
 5. **右键高亮**：在PDF文字上选中文本后右键，可添加荧光笔高亮
 
-### Step 8: 后续优化（按需）
+### Step 9: 后续优化（按需）
 
 用户反馈问题后可能需要的修复：
 - **公式渲染问题**：md转html时 `|` 在LaTeX中破坏表格 → 替换为 `\lVert`/`\lvert`
