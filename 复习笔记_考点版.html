@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深度学习期末复习</title>
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }
+
+  .container { display: flex; height: 100vh; }
+
+  /* ===== 左侧 PDF 面板 ===== */
+  .pdf-panel {
+    display: flex; flex-direction: column;
+    background: #525659;
+    min-width: 200px;
+    width: calc(100% - 460px);
+  }
+  .pdf-toolbar {
+    background: #323639; color: #fff;
+    padding: 6px 16px;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; flex-shrink: 0;
+  }
+  .pdf-toolbar input {
+    width: 60px; padding: 2px 6px; text-align: center;
+    border: 1px solid #666; background: #1a1a1a; color: #fff; border-radius: 3px;
+  }
+  .pdf-toolbar button,.pdf-toolbar select {
+    background: #555; color: #fff; border: none; padding: 3px 10px;
+    border-radius: 3px; cursor: pointer; font-size: 12px;
+  }
+  .pdf-toolbar button:hover,.pdf-toolbar select:hover { background: #777; }
+  .pdf-toolbar .total { color: #aaa; font-size: 12px; }
+  .pdf-toolbar .zoom-control { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+
+  .pdf-viewport {
+    flex: 1; overflow: auto;
+    background: #525659;
+    position: relative;
+  }
+  .pdf-viewport .pdf-wrapper {
+    display: inline-block;
+    padding: 10px;
+    min-width: 100%;
+    text-align: center;
+  }
+  .pdf-viewport canvas {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    background: #fff;
+    display: block;
+    margin: 0 auto;
+  }
+  .pdf-loading {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff; text-align: center;
+  }
+  .pdf-loading .spinner {
+    border: 4px solid rgba(255,255,255,0.2);
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .pdf-error {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff; text-align: center;
+    background: rgba(0,0,0,0.8);
+    padding: 30px; border-radius: 8px;
+    max-width: 400px;
+  }
+  .pdf-error code { background: #444; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+
+  /* ===== 拖拽分隔条 ===== */
+  .divider {
+    width: 6px; background: #ccc; cursor: col-resize;
+    flex-shrink: 0; position: relative; z-index: 10;
+    transition: background 0.15s;
+  }
+  .divider:hover, .divider.active { background: #3498db; }
+  .divider::after {
+    content: '⋮'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%); color: #999; font-size: 14px;
+  }
+  .divider:hover::after, .divider.active::after { color: #fff; }
+
+  /* ===== 右侧笔记面板 ===== */
+  .note-panel {
+    display: flex; flex-direction: column;
+    background: #fafafa;
+    min-width: 300px; width: 460px;
+  }
+  .note-header {
+    background: #2c3e50; color: #fff;
+    padding: 10px 16px; font-size: 14px; font-weight: bold;
+    flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
+  }
+  .note-header input {
+    padding: 3px 8px; border: 1px solid #555; border-radius: 3px;
+    background: #1a1a1a; color: #fff; width: 150px; font-size: 12px;
+  }
+  .note-header button {
+    background: #3498db; color: #fff; border: none;
+    padding: 3px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;
+  }
+  .note-header button:hover { background: #2980b9; }
+
+  .note-content {
+    flex: 1; overflow-y: auto;
+    padding: 16px 20px; font-size: 14px; line-height: 1.7; color: #333;
+  }
+
+  /* 笔记内容样式 */
+  .note-content h1 { font-size: 22px; margin: 0 0 10px; color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 6px; }
+  .note-content h2 { font-size: 18px; margin: 20px 0 10px; color: #e74c3c; border-bottom: 1px solid #e74c3c; padding-bottom: 4px; }
+  .note-content h3 { font-size: 16px; margin: 16px 0 8px; color: #2980b9; background: #eaf2f8; padding: 4px 10px; border-radius: 4px; }
+  .note-content table {
+    border-collapse: collapse; width: 100%; margin: 8px 0;
+    font-size: 13px; border: 1px solid #ddd;
+  }
+  .note-content th, .note-content td { border: 1px solid #ddd; padding: 6px 10px; vertical-align: top; }
+  .note-content th { background: #34495e; color: #fff; white-space: nowrap; width: 90px; }
+  .note-content tr:nth-child(even) { background: #f8f9fa; }
+  .note-content blockquote {
+    border-left: 4px solid #2c3e50; margin: 8px 0; padding: 6px 12px;
+    background: #f0f4f8; color: #555; font-size: 13px;
+  }
+  .note-content code {
+    background: #f0f0f0; padding: 1px 5px; border-radius: 3px;
+    font-size: 13px; color: #c0392b; font-family: 'Consolas', monospace;
+  }
+  .note-content strong { color: #2c3e50; }
+
+  a.page-link {
+    display: inline-block; background: #3498db; color: #fff !important;
+    padding: 0 5px; border-radius: 3px; text-decoration: none;
+    font-weight: bold; font-size: 12px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  a.page-link:hover { background: #e74c3c; }
+
+  .highlight-match { background: #ffff99; padding: 0 2px; }
+
+  @media (max-width: 900px) {
+    .container { flex-direction: column; }
+    .pdf-panel { height: 50vh; width: 100% !important; flex: none !important; }
+    .note-panel { width: 100% !important; height: 50vh; flex: none !important; }
+    .divider { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- 左侧 PDF -->
+  <div class="pdf-panel">
+    <div class="pdf-toolbar">
+      <span>📄</span>
+      <button onclick="prevPage()" title="上一页">◀</button>
+      <span>第 <input type="text" id="pageInput" value="-" style="width:50px" onkeyup="if(event.key==='Enter')jumpToPage(parseInt(this.value))"> 页</span>
+      <span class="total" id="totalPages"></span>
+      <button onclick="nextPage()" title="下一页">▶</button>
+      <span class="zoom-control">
+        <button onclick="zoomOut()">−</button>
+        <span id="zoomLevel" style="color:#aaa;min-width:40px;text-align:center">100%</span>
+        <button onclick="zoomIn()">+</button>
+      </span>
+    </div>
+    <div class="pdf-viewport" id="pdfViewport">
+      <div class="pdf-loading" id="pdfLoading">
+        <div class="spinner"></div>
+        <div>正在加载 PDF...</div>
+      </div>
+      <div class="pdf-wrapper"><canvas id="pdfCanvas"></canvas></div>
+      <div class="pdf-error" id="pdfError" style="display:none">
+        <div style="font-size:36px;margin-bottom:10px">⚠️</div>
+        <div style="font-size:16px;margin-bottom:8px">PDF 加载失败</div>
+        <div style="font-size:13px;color:#aaa;margin-bottom:12px">
+          浏览器安全策略限制了本地文件访问。<br><br>
+          请用以下任一方式：<br><br>
+          <b>方式一（推荐）：</b><br>
+          在终端运行：<br>
+          <code>python3 -m http.server 8080</code><br>
+          然后访问 <code>http://localhost:8080/复习笔记_考点版.html</code><br><br>
+          <b>方式二：</b><br>
+          使用 Firefox 浏览器打开此页面
+        </div>
+        <button onclick="location.reload()" style="padding:8px 20px;background:#3498db;color:#fff;border:none;border-radius:4px;cursor:pointer">重新加载</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 拖拽分隔条 -->
+  <div class="divider" id="divider"></div>
+
+  <!-- 右侧笔记 -->
+  <div class="note-panel">
+    <div class="note-header">
+      <span>📝 考点笔记</span>
+      <div>
+        <input type="text" id="searchInput" placeholder="搜索..." style="width:120px" onkeyup="if(event.key==='Enter')doSearch()">
+        <button onclick="clearSearch()">✕</button>
+      </div>
+    </div>
+    <div class="note-content" id="noteContent">
+<h1>深度学习期末复习笔记（考点版）</h1>
+<blockquote>
+<p>按考点编排，每个考点标注：核心内容 + 对应教材 + 考法 + 💡 记忆点
+教材：《动手学深度学习》PyTorch 第二版</p>
+</blockquote>
+<hr />
+<h2>一、深度学习基础</h2>
+<h3>考点1：线性回归</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① 模型 $\hat{y}=Xw+b$；② 均方损失 $L=\frac{1}{2n}\sum(\hat{y}-y)^2$；③ 解析解 $w^*=(X^TX)^{-1}X^Ty$；④ SGD：$w \leftarrow w-\eta\frac{1}{\lvert B\rvert}\sum\partial_w L^{(i)}$；⑤ 从高斯噪声MLE导出MSE</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§3.1 线性回归 <a href="javascript:void(0)" onclick="jumpToPage(103)" class="page-link" title="教材第85页 → PDF第103页">p85</a>-95；§3.2 从零实现 <a href="javascript:void(0)" onclick="jumpToPage(113)" class="page-link" title="教材第95页 → PDF第113页">p95</a>-100；§3.3 简洁实现 <a href="javascript:void(0)" onclick="jumpToPage(118)" class="page-link" title="教材第100页 → PDF第118页">p100</a>-104</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答</strong>：手推梯度、对比GD/SGD/Mini-batch GD；🅲 <strong>代码</strong>：从零实现；🅰 选择：解析解条件</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td><strong>S</strong>tochastic <strong>G</strong>radient <strong>D</strong>escent = <strong>随机</strong>梯度下降，每次只用小批量不是全量数据。MSE前的1/2是为了求导消掉系数2。解析解就是最小二乘法的矩阵形式</td>
+</tr>
+</tbody>
+</table>
+<h3>考点2：Softmax回归</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① Softmax运算 $\hat{y}_j=e^{o_j}/\sum_k e^{o_k}$；② 交叉熵损失 $L=-\log\hat{y}_c$；③ 信息论：自信息 $I(x)=-\log P(x)$，熵 $H[P]=-\sum P(x)\log P(x)$，KL散度；④ $nn.CrossEntropyLoss()$ = LogSoftmax + NLLLoss</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§3.4 <a href="javascript:void(0)" onclick="jumpToPage(123)" class="page-link" title="教材第105页 → PDF第123页">p105</a>-111；§3.5 <a href="javascript:void(0)" onclick="jumpToPage(129)" class="page-link" title="教材第111页 → PDF第129页">p111</a>-114；§3.6-3.7 实现 <a href="javascript:void(0)" onclick="jumpToPage(133)" class="page-link" title="教材第115页 → PDF第133页">p115</a>-126</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>必考推导</strong>：$\partial L/\partial o_j$（$j=c$→$\hat{y}_c-1$，$j\neq c$→$\hat{y}_j$）；🅲 代码实现</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>Softmax把得分(odds)压成概率分布。交叉熵只关心正确类概率→概率越接近1，损失越接近0。<strong>必记求导</strong>：输出减真实 $\hat{y}-y$（$y$是one-hot）</td>
+</tr>
+</tbody>
+</table>
+<h3>考点3：多层感知机 &amp; 激活函数</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① MLP：$H=\sigma(XW^{(1)}+b^{(1)})$，$O=HW^{(2)}+b^{(2)}$；② 无激活函数→等价单层线性；③ ReLU=$max(0,x)$；Sigmoid=$1/(1+e^{-x})$；Tanh</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§4.1 <a href="javascript:void(0)" onclick="jumpToPage(145)" class="page-link" title="教材第127页 → PDF第145页">p127</a>-133；§4.2-4.3 实现 <a href="javascript:void(0)" onclick="jumpToPage(152)" class="page-link" title="教材第134页 → PDF第152页">p134</a>-138</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答必考</strong>：对比三种激活函数优缺点；🅲 代码：<code>nn.Sequential(Linear→ReLU→Linear)</code></td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>无激活=线性复合=一层。<strong>ReLU</strong>：负=0正=x→梯度不饱和→默认选择。<strong>Sigmoid</strong>：输出[0,1]但两端梯度≈0→深层不好。<strong>Tanh</strong>：输出[-1,1]梯度比Sigmoid稍好但也会饱和</td>
+</tr>
+</tbody>
+</table>
+<h3>考点4：模型选择、过拟合与欠拟合</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① 训练误差 vs 泛化误差；② 验证集 &amp; K折交叉验证；③ <strong>过拟合</strong>：训练低、验证高→模型太复杂/数据少；④ <strong>欠拟合</strong>：两者都高→模型太简单</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§4.4 过拟合和欠拟合 <a href="javascript:void(0)" onclick="jumpToPage(157)" class="page-link" title="教材第139页 → PDF第157页">p139</a>-149</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答必考</strong>：给学习曲线判断+策略</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>过拟合=<strong>考卷全对但换个题就不会</strong>。欠拟合=<strong>根本没学会</strong>。判断口诀：<strong>训低验高=过，双高=欠</strong>。过拟合→正则化+增数据+降复杂度；欠拟合→增复杂度+降正则化</td>
+</tr>
+</tbody>
+</table>
+<h3>考点5：权重衰退</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① L2正则：$L+\frac{\lambda}{2}\lVert w\rVert^2$；② 更新：$w \leftarrow w-\eta(\partial L/\partial w + \lambda w)$；③ <code>optim.SGD(..., weight_decay=λ)</code></td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§4.5 权重衰减 <a href="javascript:void(0)" onclick="jumpToPage(167)" class="page-link" title="教材第149页 → PDF第167页">p149</a>-155</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 推导更新公式；🅰 选择：L1 vs L2</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>L2=让权重不要太大→<strong>大权重对噪声敏感</strong>。每次更新多减一步 $\lambda w$≈<strong>权重自动缩小</strong>。L1产生稀疏解(L1会把不重要特征的权重压到0)，L2只会缩小不会归零</td>
+</tr>
+</tbody>
+</table>
+<h3>考点6：Dropout</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① 训练时随机丢弃神经元(概率p)；② 推理时不丢弃，权重乘(1-p)保持期望一致</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§4.6 Dropout <a href="javascript:void(0)" onclick="jumpToPage(174)" class="page-link" title="教材第156页 → PDF第174页">p156</a>-161</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答必考</strong>：原理、训练/推理行为差异</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>Dropout = <strong>每步随机关一些神经元</strong>→逼网络不依赖特定路径→类似<strong>集成学习</strong>。训练=随机丢，测试=全部用但要<strong>缩权</strong>(乘1-p)。面试<strong>必问</strong>：为什么测试要乘(1-p)？→保持期望一致</td>
+</tr>
+</tbody>
+</table>
+<h3>考点7：数值稳定性 &amp; 模型初始化</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① 梯度消失：sigmoid饱和→梯度→0→深层不动；② 梯度爆炸：梯度指数增长→NaN；③ Xavier $Var=2/(n_{in}+n_{out})$（sigmoid/tanh）；④ He $Var=2/n_{in}$（ReLU）</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§4.8 <a href="javascript:void(0)" onclick="jumpToPage(184)" class="page-link" title="教材第166页 → PDF第184页">p166</a>-169；§4.7 前向/反向传播 <a href="javascript:void(0)" onclick="jumpToPage(180)" class="page-link" title="教材第162页 → PDF第180页">p162</a>-165</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答必考</strong>：原因+解决方案(初始化/BN/ReLU/残差连接)</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>梯度消失=<strong>信号传不到深层就没了</strong>。梯度爆炸=<strong>传着传着炸了</strong>。解决四件套：<strong>①初始化 ②BN ③ReLU ④残差连接</strong>。Xavier名字带X→适合sigmoid/tanh(对称)，He姓H→适合ReLU</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>二、卷积神经网络（CNN）</h2>
+<h3>考点8：LeNet（含卷积基础）</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>Conv(5×5,6)→Pool→Conv(5×5,16)→Pool→FC120→FC84→FC10；卷积公式 $O=(W-K+2P)/S+1$；填充步幅</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§6.1-6.6 <a href="javascript:void(0)" onclick="jumpToPage(235)" class="page-link" title="教材第217页 → PDF第235页">p217</a>-245</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 画架构图；🅲 代码搭建；🅰 <strong>计算题必考</strong>：给尺寸算输出</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td><strong>Conv两大特性</strong>：局部连接+权值共享→参数大减。输出公式：$O=(W-K+2P)/S+1$→W=32,K=5,P=2,S=1则O=32（same卷积）。LeNet=最早成功CNN=卷积→池化→全连接</td>
+</tr>
+</tbody>
+</table>
+<h3>考点9：AlexNet</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>5 Conv+3 FC；创新：<strong>ReLU、Dropout、数据增强、GPU并行</strong></td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§7.1 AlexNet <a href="javascript:void(0)" onclick="jumpToPage(266)" class="page-link" title="教材第248页 → PDF第266页">p248</a>-255</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 简答：AlexNet vs LeNet</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>AlexNet=LeNet加<strong>深</strong>+<strong>ReLU</strong>+<strong>Dropout</strong>+<strong>数据增强</strong>。2012年ImageNet夺冠→深度学习复兴标志。<strong>记住四个关键词：ReLU(加速)、Dropout(防过拟合)、数据增强(扩数据)、GPU(并行)</strong></td>
+</tr>
+</tbody>
+</table>
+<h3>考点10：VGG</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>VGG块=多个3×3 Conv+2×2 Pool；两个3×3=一个5×5感受野（参数更少+非线性更多）</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§7.2 VGG <a href="javascript:void(0)" onclick="jumpToPage(273)" class="page-link" title="教材第255页 → PDF第273页">p255</a>-258</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 简答：为什么堆叠小卷积核</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>两个3×3 vs 一个5×5→<strong>感受野一样</strong>但参数从25变成18(2×9)。还多了<strong>一层非线性</strong>。VGG=<strong>简单堆叠</strong>，网络块状设计思想→影响后续ResNet</td>
+</tr>
+</tbody>
+</table>
+<h3>考点11：NiN</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>MLPConv(Conv后接1×1 Conv)+全局平均池化代替FC</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§7.3 NiN <a href="javascript:void(0)" onclick="jumpToPage(277)" class="page-link" title="教材第259页 → PDF第277页">p259</a>-262</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅰 选择：创新点</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>NiN=<strong>Network in Network</strong>→在Conv里嵌入微型MLP(1×1 Conv)。全局平均池化取代FC→<strong>参数量大降</strong></td>
+</tr>
+</tbody>
+</table>
+<h3>考点12：GoogLeNet</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>Inception块：1×1,3×3,5×5 Conv+3×3 Pool四路并行→通道拼接；1×1 Conv做bottleneck降维</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§7.4 GoogLeNet <a href="javascript:void(0)" onclick="jumpToPage(281)" class="page-link" title="教材第263页 → PDF第281页">p263</a>-267</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 简答：Inception设计思想</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>Inception=<strong>多尺度并行</strong>→不同大小卷积核捕捉不同范围特征。1×1 Conv做bottleneck=<strong>先降维再卷积</strong>→计算量骤减。名字致敬《盗梦空间》</td>
+</tr>
+</tbody>
+</table>
+<h3>考点13：ResNet ⭐最重要</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① <strong>退化问题</strong> vs 过拟合；② 残差块 $y=F(x)+x$；③ 瓶颈1×1→3×3→1×1；④ <strong>梯度直通</strong>：$\partial Loss/\partial x_l = \partial Loss/\partial x_L \cdot (1 + \partial/\partial x_l \sum F)$</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§7.6 ResNet <a href="javascript:void(0)" onclick="jumpToPage(293)" class="page-link" title="教材第275页 → PDF第293页">p275</a>-288</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答必考</strong>：为什么能训练更深网络</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>退化=<strong>层多了反而更差</strong>（不是过拟合！）。残差连接=<strong>给梯度开了一条高速公路</strong>，梯度可以直接跳过权重层传回去。瓶颈设计=<strong>两头宽中间窄</strong>。记住公式 $y=F(x)+x$，<strong>x这条恒等路径是整个ResNet的精髓</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>三、循环神经网络（RNN）</h2>
+<h3>考点14：RNN</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① $H_t=\phi(X_tW_{xh}+H_{t-1}W_{hh}+b_h)$；② <strong>参数共享</strong>（每步用一样）；③ 困惑度 $Perplexity=\exp(-\frac1n\sum\log P(x_t \mid x_{\lt t}))$（越小越好）；④ 梯度裁剪 $g \leftarrow \min(1,\theta/\lVert g\rVert) \cdot g$；⑤ BPTT：沿时间展开计算图</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§8.4-8.7 <a href="javascript:void(0)" onclick="jumpToPage(330)" class="page-link" title="教材第312页 → PDF第330页">p312</a>-332</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 公式手写、BPTT原理、RNN梯度问题；🅲 代码：梯度裁剪</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>RNN核心=<strong>把上一时刻的隐状态传给下一时刻</strong>，$W_{hh}$是循环核心。参数共享=<strong>每步用同一组$W$</strong>，所以展开后梯度连乘→指数消失/爆炸。困惑度=<strong>模型猜下一个词的"困惑程度"</strong>，1最好无限大最差。梯度爆炸→裁剪，消失→LSTM/GRU</td>
+</tr>
+</tbody>
+</table>
+<h3>考点15：GRU</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>重置门$R_t$=忘多少；更新门$Z_t$=留多少。$\tilde{H}<em>t=\tanh(X_tW</em>{xh}+(R_t\odot H_{t-1})W_{hh})$，$H_t=Z_t\odot H_{t-1}+(1-Z_t)\odot\tilde{H}_t$</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§9.1 GRU <a href="javascript:void(0)" onclick="jumpToPage(351)" class="page-link" title="教材第333页 → PDF第351页">p333</a>-341</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答必考</strong>：缓解梯度消失的原因</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>GRU = 只<strong>两个门</strong>：重置门≈<strong>决定忘多少过去</strong>，更新门≈<strong>决定用多少新信息</strong>。当更新门=1时 $H_t=H_{t-1}$→<strong>信息完全保留</strong>→梯度消失缓解。比LSTM更轻量</td>
+</tr>
+</tbody>
+</table>
+<h3>考点16：LSTM</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>遗忘门$F_t$、输入门$I_t$、输出门$O_t$；$C_t=F_t\odot C_{t-1}+I_t\odot\tilde{C}_t$；$H_t=O_t\odot\tanh(C_t)$</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§9.2 LSTM <a href="javascript:void(0)" onclick="jumpToPage(359)" class="page-link" title="教材第341页 → PDF第359页">p341</a>-349</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>必考</strong>：手写三门公式；🅱 对比LSTM vs GRU</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>LSTM = <strong>三个门</strong> + <strong>一条记忆带$C_t$</strong>。$C$像传送带贯穿整个序列→信息长期保留。<strong>遗忘门</strong>=清除旧记忆；<strong>输入门</strong>=写入新记忆；<strong>输出门</strong>=决定展示什么。vs GRU：LSTM有独立$C_t$更灵活但参数多，GRU更轻量效果相当</td>
+</tr>
+</tbody>
+</table>
+<h3>考点17：深层RNN &amp; 双向RNN</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>深层=多层堆叠；双向=前向+后向拼接</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§9.3 <a href="javascript:void(0)" onclick="jumpToPage(367)" class="page-link" title="教材第349页 → PDF第367页">p349</a>-352；§9.4 <a href="javascript:void(0)" onclick="jumpToPage(370)" class="page-link" title="教材第352页 → PDF第370页">p352</a>-357</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅰 <strong>易错选择</strong>：双向能否用于LM？→<strong>不能</strong>(看到了未来)</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>深层=<strong>竖着叠</strong>（每层输出是下层输入）；双向=<strong>横着看两边</strong>。<strong>必记陷阱</strong>：双向RNN做语言模型=<strong>作弊</strong>（预测下一个词时看到了后面的词）</td>
+</tr>
+</tbody>
+</table>
+<h3>考点18：Seq2Seq</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① 编码器-解码器；② Teacher Forcing（用真实输出当输入）；③ BLEU评分；④ 束搜索k=1=贪心</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§9.6-9.8 <a href="javascript:void(0)" onclick="jumpToPage(382)" class="page-link" title="教材第364页 → PDF第382页">p364</a>-380</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 简答：Teacher Forcing、Beam Search</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>Seq2Seq=<strong>编码器压缩→解码器展开</strong>。Teacher Forcing=<strong>训练时给正确答案</strong>→收敛快但测试时一步错步步错(暴露偏差)。Beam Search=<strong>每一步保留k条路</strong>不是只走一条。k=1退化为贪心</td>
+</tr>
+</tbody>
+</table>
+<h3>考点19：语言模型</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>估计序列概率$P(x_1,...,x_T)$；n-gram=$n-1$阶马尔可夫；文本预处理：词元化→词表→数值化</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§8.2 <a href="javascript:void(0)" onclick="jumpToPage(316)" class="page-link" title="教材第298页 → PDF第316页">p298</a>-302；§8.3 <a href="javascript:void(0)" onclick="jumpToPage(321)" class="page-link" title="教材第303页 → PDF第321页">p303</a>-312</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅰 选择：n-gram含义、特殊标记作用</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>n-gram=<strong>只看前n-1个词预测第n个</strong>。$\lt$unk$\gt$=未见过的词，$\lt$pad$\gt$=填充对齐，$\lt$bos$\gt$/$\lt$eos$\gt$=起止标记</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>四、注意力机制</h2>
+<h3>考点20：注意力机制基础</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① <strong>QKV框架</strong>：Q问K，K答score，加权V；② 加性注意力 $a(q,k)=w_v^T\tanh(W_qq+W_kk)$；③ 缩放点积 $a(q,k)=q^Tk/\sqrt{d}$；④ 多头 $MultiHead=Concat(head)W_O$；⑤ 自注意力 Q=K=V</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§10.1-10.3 <a href="javascript:void(0)" onclick="jumpToPage(399)" class="page-link" title="教材第381页 → PDF第399页">p381</a>-398；§10.5 <a href="javascript:void(0)" onclick="jumpToPage(422)" class="page-link" title="教材第404页 → PDF第422页">p404</a>-408；§10.6 <a href="javascript:void(0)" onclick="jumpToPage(426)" class="page-link" title="教材第408页 → PDF第426页">p408</a>-413</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 为什么除以$\sqrt{d}$(防softmax太极端)；为什么多头(多子空间学不同模式)；为什么位置编码(置换不变性)；🅰 复杂度对比</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>注意力本质=<strong>Query检索Key, 取出Value</strong>。缩放点积除以$\sqrt{d}$→<strong>softmax输入太大梯度会消失</strong>。多头=<strong>多个视角并行看同一段话</strong>。自注意力=QKV都来自自己→<strong>句子内部算关联</strong>。复杂度：自注意力$O(n^2d)$ vs RNN $O(nd^2)$→序列长时自注意力贵</td>
+</tr>
+</tbody>
+</table>
+<h3>考点21：Seq2Seq + 注意力</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>Bahdanau注意力：解码每步动态看源序列不同位置→不依赖单一上下文向量</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§10.4 Bahdanau注意力 <a href="javascript:void(0)" onclick="jumpToPage(417)" class="page-link" title="教材第399页 → PDF第417页">p399</a>-403</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 简答：注意力如何改进Seq2Seq</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>原始Seq2Seq=<strong>只看最后一个隐状态</strong>（信息瓶颈）。加注意力=<strong>每一步回头看源序列全部</strong>→不丢失信息，更灵活</td>
+</tr>
+</tbody>
+</table>
+<h3>考点22：Transformer ⭐最重要</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① <strong>编码器</strong>(N=6)：多头自注意力→Add&amp;Norm→FFN→Add&amp;Norm；② <strong>解码器</strong>(N=6)：掩蔽多头自注意力→Add&amp;Norm→交叉注意力→Add&amp;Norm→FFN→Add&amp;Norm；③ FFN=$\max(0,xW_1+b_1)W_2+b_2$；④ 残差连接$x+Sublayer(x)$；⑤ <strong>LayerNorm</strong>(同层归一化) vs <strong>BatchNorm</strong>(同batch归一化)；⑥ 位置编码 $PE_{(pos,2i)}=\sin(pos/10000^{2i/d})$</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§10.7 <a href="javascript:void(0)" onclick="jumpToPage(431)" class="page-link" title="教材第413页 → PDF第431页">p413</a>-426；§10.6 位置编码 <a href="javascript:void(0)" onclick="jumpToPage(428)" class="page-link" title="教材第410页 → PDF第428页">p410</a>-413</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>终极必考题</strong>：画出架构图！为什么用LN不用BN？解码器掩蔽原因</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td><strong>架构速记</strong>：编6解6+自注意力+交叉注意力+FFN+残差+LN。<strong>LN vs BN核心区别</strong>：BN对batch归一化→序列变长时统计不稳；<strong>LN对每个样本自己归一化</strong>→不受batch影响。解码器<strong>掩蔽</strong>=不让看到未来的词。Transformer=<strong>纯注意力，无RNN/CNN</strong>→BERT/GPT全是它</td>
+</tr>
+</tbody>
+</table>
+<h3>考点23：BERT</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① 多层Transformer编码器(双向)；② <strong>MLM</strong>：mask 15%(80%→[MASK],10%随机,10%不变)；③ <strong>NSP</strong>：下句预测；④ 输入=Token+Segment+Position Embedding；⑤ [CLS][SEP]</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§14.8 BERT <a href="javascript:void(0)" onclick="jumpToPage(697)" class="page-link" title="教材第679页 → PDF第697页">p679</a>-691；§14.9-14.10 <a href="javascript:void(0)" onclick="jumpToPage(710)" class="page-link" title="教材第692页 → PDF第710页">p692</a>-702</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答必考</strong>：预训练任务、为什么MLM好(双向)</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>BERT=<strong>双向Transformer编码器</strong>。MLM=<strong>盖住让你猜</strong>→上下文都看到了所以是双向。NSP=<strong>两句话是否连续</strong>→理解句子关系。BERT_base(12层,768维,12头)≈<strong>2.2亿参数</strong>。<strong>注意区别</strong>：BERT是编码器(GPT是解码器)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>五、计算机视觉</h2>
+<h3>考点24：图片增广</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>翻转、裁剪、颜色抖动(亮度/对比度/饱和度/色相)；训练时增广，测试时仅标准化</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§13.1 图像增广 <a href="javascript:void(0)" onclick="jumpToPage(567)" class="page-link" title="教材第549页 → PDF第567页">p549</a>-557</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅰 选择：哪些方法</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>增广=<strong>免费数据扩增</strong>。测试时不能随机增广→结果不稳定</td>
+</tr>
+</tbody>
+</table>
+<h3>考点25：微调 ⭐必考</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>①加载预训练模型→②替换输出层→③输出层随机初始化→④微调(输出层大lr，其余小lr)</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§13.2 微调 <a href="javascript:void(0)" onclick="jumpToPage(575)" class="page-link" title="教材第557页 → PDF第575页">p557</a>-563</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 <strong>简答必考</strong>：步骤+为什么有效</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>微调=<strong>站在巨人肩膀上</strong>。预训练模型已经学会通用特征(边缘/纹理)，只需少量调整适配新任务。数据少时千万要用微调别从头训</td>
+</tr>
+</tbody>
+</table>
+<h3>考点26：物体检测（R-CNN/SSD/YOLO）</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① 边界框、锚框、IoU、NMS；② <strong>R-CNN</strong>(选→提→分→回归)；③ <strong>Fast</strong>(共享CNN+RoI池化)；④ <strong>Faster</strong>(RPN代替选择性搜索)；⑤ <strong>SSD</strong>(多尺度)；⑥ <strong>YOLO</strong>(单阶段)</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§13.3-13.8 <a href="javascript:void(0)" onclick="jumpToPage(582)" class="page-link" title="教材第564页 → PDF第582页">p564</a>-605</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 演进过程；🅰 概念</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>R-CNN演进=<strong>越来越快</strong>。R-CNN=每个候选框都过CNN→慢。Fast=整图一次CNN→快。Faster=RPN自提框→更快。<strong>两阶段</strong>(R-CNN系) vs <strong>一阶段</strong>(YOLO/SSD)：两阶段准但慢，一阶段快但差一点</td>
+</tr>
+</tbody>
+</table>
+<h3>考点27：语义分割 &amp; FCN</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>语义分割=像素级分类；FCN=全卷积+转置卷积上采样</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§13.9-13.11 <a href="javascript:void(0)" onclick="jumpToPage(623)" class="page-link" title="教材第605页 → PDF第623页">p605</a>-623</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅰 选择：语义vs实例分割；🅱 简答：转置卷积作用</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>语义分割=<strong>每个像素分类</strong>(所有车标红)。实例分割=<strong>每个物体单独标</strong>(车1红,车2蓝)。FCN=<strong>把FC层全换成Conv</strong>→输入任意尺寸→输出同尺寸分割图</td>
+</tr>
+</tbody>
+</table>
+<h3>考点28：样式迁移</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>内容损失(像素相似)+风格损失(Gram矩阵匹配)联合优化</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§13.12 风格迁移 <a href="javascript:void(0)" onclick="jumpToPage(642)" class="page-link" title="教材第624页 → PDF第642页">p624</a>-632</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅰 选择：概念</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>内容=<strong>看起来像原图</strong>，风格=<strong>纹理色彩像名画</strong>(Gram矩阵算特征图之间的相关性)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>六、NLP应用</h2>
+<h3>考点29：机器翻译</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>Seq2Seq+注意力+BLEU（见考点18、21）</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§9.5 机器翻译 <a href="javascript:void(0)" onclick="jumpToPage(375)" class="page-link" title="教材第357页 → PDF第375页">p357</a>-362</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 综合：Seq2Seq+注意力串联</td>
+</tr>
+</tbody>
+</table>
+<h3>考点30：自然语言推理（NLI）</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>判断两句话关系：蕴含/矛盾/中性</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§15.4 <a href="javascript:void(0)" onclick="jumpToPage(737)" class="page-link" title="教材第719页 → PDF第737页">p719</a>-723；§15.5 <a href="javascript:void(0)" onclick="jumpToPage(742)" class="page-link" title="教材第724页 → PDF第742页">p724</a>-730</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅰 选择：任务定义</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>NLI=<strong>"A句→B句"成立吗？</strong> 例如："猫在睡觉"→"动物在休息"=蕴含；"猫在睡觉"→"猫在跑步"=矛盾</td>
+</tr>
+</tbody>
+</table>
+<h3>考点31：BERT微调应用</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>① 单文本分类：[CLS]→FC→Softmax；② 文本对： [CLS]A[SEP]B[SEP]→FC；③ 文本标注：每token→FC</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§15.6 微调BERT <a href="javascript:void(0)" onclick="jumpToPage(749)" class="page-link" title="教材第731页 → PDF第749页">p731</a>-740</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 简答：不同任务怎么配输出层</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>[CLS]存整句信息→<strong>分类用CLS</strong>。标注每个词都要预测→<strong>每个token出标签</strong>。文本对→<strong>A和B拼一起送进去</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>七、性能</h2>
+<h3>考点32：CPU / GPU / ASIC</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>CPU少核→串行；GPU多核(SIMT)→并行矩阵；ASIC专为特定计算(TPU)</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§12.4 硬件 <a href="javascript:void(0)" onclick="jumpToPage(535)" class="page-link" title="教材第517页 → PDF第535页">p517</a>-527</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅰 选择：为什么GPU适合DL</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>CPU=<strong>几个聪明人</strong>做复杂事；GPU=<strong>一万个普通人</strong>做简单数学。DL=矩阵乘法→GPU天然优势</td>
+</tr>
+</tbody>
+</table>
+<h3>考点33：多GPU &amp; 分布式</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td><strong>数据并行</strong>：每GPU一份模型→分数据→前向→损失→反向→梯度AllReduce→更新；Ring AllReduce去中心化</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§12.5-12.7 <a href="javascript:void(0)" onclick="jumpToPage(546)" class="page-link" title="教材第528页 → PDF第546页">p528</a>-548</td>
+</tr>
+<tr>
+<td><strong>常见考法</strong></td>
+<td>🅱 简答：数据并行步骤；🅰 选择概念</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>数据并行=<strong>一人一份模型，分数据算梯度，然后汇总</strong>。Ring AllReduce=<strong>围成一圈传梯度</strong>，不用中心服务器→效率高。瓶颈：<strong>通信</strong>(GPU间传梯度比算梯度还慢)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>八、综合应用（Kaggle实战）</h2>
+<h3>考点34：房价预测</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>数据预处理→特征工程→MLP→K折交叉验证→集成</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§4.10 <a href="javascript:void(0)" onclick="jumpToPage(198)" class="page-link" title="教材第180页 → PDF第198页">p180</a>-188</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>Kaggle回归任务标准流程：清洗→处理缺失值→标准化→交叉验证选模型</td>
+</tr>
+</tbody>
+</table>
+<h3>考点35：图片分类</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>核心内容</strong></td>
+<td>图像增广+预训练模型微调；Kaggle犬种识别</td>
+</tr>
+<tr>
+<td><strong>对应教材</strong></td>
+<td>§13.13-13.14 <a href="javascript:void(0)" onclick="jumpToPage(651)" class="page-link" title="教材第633页 → PDF第651页">p633</a>-648</td>
+</tr>
+<tr>
+<td><strong>💡 记忆点</strong></td>
+<td>CV比赛标准套路：<strong>预训练模型(如ResNet50)+微调+数据增广+集成</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>附录：按题型分类速查</h2>
+<h3>🅰 选择题/填空题</h3>
+<table>
+<thead>
+<tr>
+<th>考点</th>
+<th>核心要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>广播机制</td>
+<td>(3,1)+(1,4)=(3,4)</td>
+</tr>
+<tr>
+<td>卷积输出尺寸</td>
+<td>O=(W-K+2P)/S+1</td>
+</tr>
+<tr>
+<td>池化作用</td>
+<td>降维、平移不变性</td>
+</tr>
+<tr>
+<td>分布偏移类型</td>
+<td>协变量/标签/概念偏移</td>
+</tr>
+<tr>
+<td>激活函数特性</td>
+<td>ReLU默认选，Sigmoid/Tanh会饱和</td>
+</tr>
+<tr>
+<td>优化器选择</td>
+<td>Adam最常用</td>
+</tr>
+<tr>
+<td>困惑度含义</td>
+<td>越小越好，1为理想</td>
+</tr>
+<tr>
+<td>n-gram</td>
+<td>n阶马尔可夫</td>
+</tr>
+<tr>
+<td>Skip-Gram vs CBOW</td>
+<td>中心→上下文 vs 上下文→中心</td>
+</tr>
+<tr>
+<td>双向RNN</td>
+<td><strong>不能</strong>用于语言模型</td>
+</tr>
+<tr>
+<td>CPU vs GPU</td>
+<td>并行 vs 串行</td>
+</tr>
+<tr>
+<td>欠拟合/过拟合</td>
+<td>训低验高=过，双高=欠</td>
+</tr>
+<tr>
+<td>门控机制</td>
+<td>LSTM 3门 vs GRU 2门</td>
+</tr>
+</tbody>
+</table>
+<h3>🅱 简答题</h3>
+<table>
+<thead>
+<tr>
+<th>考点</th>
+<th>关键话术</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>过拟合解决</td>
+<td>正则化+增数据+降复杂度</td>
+</tr>
+<tr>
+<td>梯度消失/爆炸</td>
+<td>初始化+BN+ReLU+残差</td>
+</tr>
+<tr>
+<td>Dropout</td>
+<td>训练随机丢，测试缩放</td>
+</tr>
+<tr>
+<td>BatchNorm</td>
+<td>训练用batch统计，推理用全局</td>
+</tr>
+<tr>
+<td>ResNet有效</td>
+<td>残差连接梯度直通</td>
+</tr>
+<tr>
+<td>Transformer</td>
+<td>画架构图(编6解6+各子层)</td>
+</tr>
+<tr>
+<td>自注意力位置编码</td>
+<td>置换不变性需要位置信息</td>
+</tr>
+<tr>
+<td>Adam公式</td>
+<td>一阶矩+二阶矩+偏差校正</td>
+</tr>
+<tr>
+<td>微调步骤</td>
+<td>加载预训练→换输出层→微调</td>
+</tr>
+<tr>
+<td>BERT预训练</td>
+<td>MLM+NSP</td>
+</tr>
+<tr>
+<td>LSTM/GRU公式</td>
+<td>手写门控公式</td>
+</tr>
+</tbody>
+</table>
+<h3>🅲 代码题</h3>
+<table>
+<thead>
+<tr>
+<th>考点</th>
+<th>关键实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>线性回归</td>
+<td>生成数据→Linear/MSELoss→SGD→训练循环</td>
+</tr>
+<tr>
+<td>Softmax+交叉熵</td>
+<td>CrossEntropyLoss / 手动softmax</td>
+</tr>
+<tr>
+<td>MLP</td>
+<td>nn.Sequential(Linear→ReLU→Linear)</td>
+</tr>
+<tr>
+<td>LeNet</td>
+<td>Conv2d→Pool→Conv2d→Pool→Linear</td>
+</tr>
+<tr>
+<td>RNN训练</td>
+<td>nn.RNN/LSTM/GRU + 梯度裁剪</td>
+</tr>
+<tr>
+<td>autograd</td>
+<td>backward + detach + grad</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>注：页码对应中文PDF内部页号。💡记忆点帮助理解和记忆，不是完整考点内容。</em></p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== PDF.js =====
+var pdfDoc = null, pageNum = 1, scale = 1.2, pageRendering = false;
+
+var canvas = document.getElementById('pdfCanvas');
+var ctx = canvas.getContext('2d');
+
+function loadPDF() {
+    var url = '%E5%8A%A8%E6%89%8B%E5%AD%A6%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0-PyTorch%28%E7%AC%AC%E4%BA%8C%E7%89%88%29%20%28Aston%20Zhang%2C%20Zachary%20C.%20Lipton%2C%20%E6%9D%8E%E6%B2%90%20etc.%29%20%28z-library.sk%2C%201lib.sk%2C%20z-lib.sk%29.pdf';
+    pdfjsLib.getDocument(url).promise.then(function(doc) {
+        pdfDoc = doc;
+        document.getElementById('totalPages').textContent = '/ ' + doc.numPages + ' 页';
+        document.getElementById('pdfLoading').style.display = 'none';
+        renderPage(pageNum);
+    }).catch(function(err) {
+        console.error('PDF load error:', err);
+        document.getElementById('pdfLoading').style.display = 'none';
+        document.getElementById('pdfError').style.display = 'block';
+    });
+}
+
+function renderPage(num) {
+    if (pageRendering || !pdfDoc) return;
+    pageRendering = true;
+
+    pdfDoc.getPage(num).then(function(page) {
+        var viewport = page.getViewport({ scale: scale });
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        canvas.style.width = viewport.width + 'px';
+        canvas.style.height = viewport.height + 'px';
+
+        var renderContext = {
+            canvasContext: ctx,
+            viewport: viewport
+        };
+
+        return page.render(renderContext).promise;
+    }).then(function() {
+        pageRendering = false;
+        pageNum = num;
+        document.getElementById('pageInput').value = num;
+        // 滚动到顶部
+        document.getElementById('pdfViewport').scrollTop = 0;
+    }).catch(function(err) {
+        pageRendering = false;
+        console.error('Render error:', err);
+    });
+}
+
+function jumpToPage(num) {
+    num = parseInt(num);
+    if (isNaN(num) || !pdfDoc) return;
+    num = Math.max(1, Math.min(num, pdfDoc.numPages));
+    renderPage(num);
+}
+
+function prevPage() { jumpToPage(pageNum - 1); }
+function nextPage() { jumpToPage(pageNum + 1); }
+
+function zoomIn() { scale = Math.min(scale + 0.1, 3.0); updateZoom(); }
+function zoomOut() { scale = Math.max(scale - 0.1, 0.4); updateZoom(); }
+function updateZoom() {
+    document.getElementById('zoomLevel').textContent = Math.round(scale * 100) + '%';
+    if (pdfDoc) renderPage(pageNum);
+}
+
+// 键盘快捷键
+document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevPage(); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); nextPage(); }
+    if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(); }
+    if (e.key === '-') { e.preventDefault(); zoomOut(); }
+});
+
+// 鼠标滚轮缩放（Ctrl+滚轮）
+document.getElementById('pdfViewport').addEventListener('wheel', function(e) {
+    if (e.ctrlKey) { e.preventDefault(); if (e.deltaY < 0) zoomIn(); else zoomOut(); }
+}, { passive: false });
+
+// ===== 搜索功能 =====
+function doSearch() {
+    var query = document.getElementById('searchInput').value.trim().toLowerCase();
+    var content = document.getElementById('noteContent');
+    // 清除旧高亮
+    content.innerHTML = content.innerHTML.replace(/<span class="highlight-match">(.*?)<\/span>/g, '$1');
+    if (!query) return;
+
+    var walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function(node) {
+        if (node.parentNode && node.parentNode.classList.contains('highlight-match')) return;
+        var text = node.textContent.toLowerCase();
+        var idx = text.indexOf(query);
+        if (idx >= 0) {
+            var span = document.createElement('span');
+            span.appendChild(document.createTextNode(node.textContent.substring(0, idx)));
+            var mark = document.createElement('span');
+            mark.className = 'highlight-match';
+            mark.textContent = node.textContent.substring(idx, idx + query.length);
+            span.appendChild(mark);
+            var after = node.textContent.substring(idx + query.length);
+            if (after) span.appendChild(document.createTextNode(after));
+            node.parentNode.replaceChild(span, node);
+        }
+    });
+}
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    var c = document.getElementById('noteContent');
+    c.innerHTML = c.innerHTML.replace(/<span class="highlight-match">(.*?)<\/span>/g, '$1');
+}
+
+// ===== 拖拽分隔条 =====
+(function() {
+    var divider = document.getElementById('divider');
+    var container = document.querySelector('.container');
+    var pdfPanel = document.querySelector('.pdf-panel');
+    var notePanel = document.querySelector('.note-panel');
+    var isDragging = false;
+
+    divider.addEventListener('mousedown', function() {
+        isDragging = true;
+        divider.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        var rect = container.getBoundingClientRect();
+        var offset = e.clientX - rect.left;
+        var dw = 6, minL = 200, minR = 300;
+        var leftW = Math.max(minL, Math.min(offset, rect.width - minR - dw));
+        var rightW = rect.width - leftW - dw;
+        if (rightW < minR) { rightW = minR; leftW = rect.width - rightW - dw; }
+        pdfPanel.style.width = leftW + 'px';
+        pdfPanel.style.flex = 'none';
+        notePanel.style.width = rightW + 'px';
+        notePanel.style.flex = 'none';
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            divider.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+})();
+
+// ===== 渲染 KaTeX =====
+try { renderMathInElement(document.getElementById('noteContent'), {
+    delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
+    throwOnError: false
+}); } catch(e) {}
+
+// ===== 启动加载 PDF =====
+loadPDF();
+</script>
+
+</body>
+</html>

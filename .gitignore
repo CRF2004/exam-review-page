@@ -1,0 +1,23 @@
+# Large binary files
+*.pdf
+*.docx
+*.doc
+
+# Data / results
+data/
+results/
+script/
+
+# Claude config
+.claude/
+
+# Assets
+assets/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
