@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>深度学习期末复习</title>
 <!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -410,6 +413,8 @@
 </tr>
 </tbody>
 </table>
+<p>丢弃np个，保留n(1-p)个，为了保持输出一致，则保留的需要被放大。</p>
+<p>假设输出为y，则输入Σx需要放大到y/n(1-p)，也就是每个x放大到y/(1-p)</p>
 <h3>考点7：数值稳定性 &amp; 模型初始化</h3>
 <table>
 <thead>
