@@ -77,6 +77,7 @@
   }
   .textLayer ::selection { background: rgba(60,132,244,0.4); color: transparent; }
   .textLayer ::-moz-selection { background: rgba(60,132,244,0.4); color: transparent; }
+  .textLayer span.hl { background: rgba(255,255,0,0.5); border-radius: 2px; }
   .pdf-loading {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -1356,6 +1357,8 @@
 <script>
 // ===== PDF.js =====
 var pdfDoc = null, pageNum = 1, scale = 1.2, pageRendering = false;
+var highlights = {}; // {pageNum: [spanIndex, ...]} 高亮标记
+var currentTextDivs = []; // renderTextLayer 创建的文本 span 数组
 
 var canvas = document.getElementById('pdfCanvas');
 var ctx = canvas.getContext('2d');
@@ -1378,9 +1381,10 @@ function renderPage(num) {
     if (pageRendering || !pdfDoc) return;
     pageRendering = true;
 
-    // 清除旧文本层
+    // 清除旧文本层及 textDivs 引用
     var textLayerDiv = document.getElementById('textLayer');
     textLayerDiv.innerHTML = '';
+    currentTextDivs = [];
 
     pdfDoc.getPage(num).then(function(page) {
         var viewport = page.getViewport({ scale: scale });
@@ -1405,8 +1409,8 @@ function renderPage(num) {
                     textContentSource: textContent,
                     container: textLayerDiv,
                     viewport: viewport,
-                    textDivs: [],
-                    enhanceTextSelection: true
+                    textDivs: currentTextDivs,
+                    enhanceTextSelection: false
                 });
                 if (task && task.promise) return task.promise;
             });
@@ -1416,11 +1420,47 @@ function renderPage(num) {
         pageNum = num;
         document.getElementById('pageInput').value = num;
         document.getElementById('pdfViewport').scrollTop = 0;
+        // textDivs 已就绪，恢复高亮
+        restoreHighlights(num);
     }).catch(function(err) {
         pageRendering = false;
         console.error('Render error:', err);
     });
 }
+
+// ===== 高亮标记功能 =====
+function restoreHighlights(num) {
+    if (!highlights[num]) return;
+    highlights[num].forEach(function(idx) {
+        if (idx < currentTextDivs.length) {
+            currentTextDivs[idx].classList.add('hl');
+        }
+    });
+}
+
+document.addEventListener('contextmenu', function(e) {
+    // 只处理 textLayer 内的右键
+    if (!e.target.closest('#textLayer')) return;
+    var sel = window.getSelection();
+    if (!sel.isCollapsed && sel.rangeCount > 0) {
+        e.preventDefault();
+        var range = sel.getRangeAt(0);
+        var indices = [];
+        currentTextDivs.forEach(function(div, idx) {
+            if (range.intersectsNode(div)) indices.push(idx);
+        });
+        if (indices.length > 0) {
+            if (!highlights[pageNum]) highlights[pageNum] = [];
+            indices.forEach(function(idx) {
+                if (highlights[pageNum].indexOf(idx) === -1) {
+                    highlights[pageNum].push(idx);
+                    currentTextDivs[idx].classList.add('hl');
+                }
+            });
+        }
+        sel.removeAllRanges();
+    }
+});
 
 function jumpToPage(num) {
     num = parseInt(num);

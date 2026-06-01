@@ -242,6 +242,7 @@ html = f"""<!DOCTYPE html>
   }}
   .textLayer ::selection {{ background: rgba(60,132,244,0.4); color: transparent; }}
   .textLayer ::-moz-selection {{ background: rgba(60,132,244,0.4); color: transparent; }}
+  .textLayer span.hl {{ background: rgba(255,255,0,0.5); border-radius: 2px; }}
   .pdf-loading {{
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
