@@ -1,30 +1,45 @@
 ---
 name: exam-review
-description: "从教材PDF生成考点复习笔记 + 交互式HTML复习页面（左PDF右笔记，分栏可拖拽，页码链接跳转）。用户提供PDF教材（必需）和可选考点大纲，自动完成笔记整理、HTML生成、启动本地服务器。Use when user says: 期末复习、考点整理、生成复习页面、复习笔记HTML、exam review page、PDF复习"
+description: "从教材PDF生成考点复习笔记 + 交互式HTML复习页面（支持多PDF、跨文件页码跳转）。用户提供PDF教材（单个或多个）和可选考点大纲，自动完成笔记整理、HTML生成、启动本地服务器。Use when user says: 期末复习、考点整理、生成复习页面、复习笔记HTML、exam review page、PDF复习"
 argument-hint: [pdf-path]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebFetch, WebSearch
 ---
 
 # Exam Review: PDF Textbook → Interactive Review Page
 
-从教材PDF生成考点复习笔记和交互式HTML复习页面。
+从教材PDF生成考点复习笔记和交互式HTML复习页面。支持**多个PDF同时配置**，笔记中可用 `讲义N p42` 格式实现跨文件页码跳转。
 
 **Inputs:**
-- `$ARGUMENTS` — PDF教材路径（必需），可附带考点大纲路径或描述
+- `$ARGUMENTS` — PDF教材路径（可选，若提供则自动扫描目录下的PDF）
 - 用户提供的考点大纲（可选），可以是文本描述或 markdown 文件
+
+**如果未提供PDF路径**：工具会自动扫描工作目录下所有PDF文件并识别"讲义N"命名模式。
 
 ## Workflow
 
-### Step 1: 分析 PDF 结构
+### Step 0: 扫描 PDF 文件
 
-使用 pdfplumber（已安装）分析 PDF：
+如果用户提供了目录或未指定路径，先用 `--scan` 模式扫描：
+
+```bash
+cd WORK_DIR
+python3 generate_review_page.py --scan
+```
+
+这会输出当前目录下所有 PDF 的配置模板。如果文件和"讲义"命名模式匹配，会自动提取为 `讲义一`、`讲义二` 等键名。
+
+手动确认文件名和键名的映射关系，每个PDF需分配一个**唯一的中文标识**（如"讲义一"、"参考资料"），用于笔记中的跨文件引用。
+
+### Step 1~2: 分析每个 PDF 的结构与页码偏移
+
+对每个 PDF 独立分析。使用 pdfplumber（已安装）：
 
 ```bash
 python3 -c "
 import pdfplumber
-path = 'PDF_PATH'
+path = '讲义一.pdf'
 with pdfplumber.open(path) as pdf:
-    print(f'Total pages: {len(pdf.pages)}')
+    print(f'{path}: {len(pdf.pages)} pages')
     for i in range(min(30, len(pdf.pages))):
         text = pdf.pages[i].extract_text()[:200] if pdf.pages[i].extract_text() else ''
         first_line = text.strip().split(chr(10))[0] if text.strip() else '(empty)'
@@ -34,20 +49,16 @@ with pdfplumber.open(path) as pdf:
 
 关键信息要提取：
 - **总页数**
-- **目录结构**：找 Table of Contents 页面，提取章节→页码映射
 - **印刷页码偏移**：正文第一页（印刷第1页）对应PDF第几页
-- **章节分布**：各章节起止页码
 
-### Step 2: 确定页码偏移量
-
-pdfplumber 检测正文中各页底部的独立数字来确定偏移：
+确定偏移量（对每个PDF分别执行）：
 
 ```bash
 python3 -c "
 import pdfplumber, re
-path = 'PDF_PATH'
+path = '讲义一.pdf'
 with pdfplumber.open(path) as pdf:
-    for i in range(30, len(pdf.pages)):
+    for i in range(len(pdf.pages)):
         page = pdf.pages[i]
         text = page.extract_text() or ''
         lines = text.strip().split('\n')
@@ -55,15 +66,14 @@ with pdfplumber.open(path) as pdf:
             l = l.strip()
             if re.match(r'^\d{1,3}$', l):
                 num = int(l)
-                if 1 <= num <= len(pdf.pages):
-                    offset = (i+1) - num
-                    if 14 <= offset <= 22:
-                        print(f'PDF page {i+1} -> printed page {num} (offset={offset:+d})')
-                        break
+                offset = (i+1) - num
+                if 0 <= offset <= 5:
+                    print(f'PDF page {i+1} -> printed page {num} (offset={offset:+d})')
+                    break
 "
 ```
 
-取最频繁出现的 offset 值。也通过目录交叉验证（如目录说§4.4在p140，在PDF中找到§4.4内容所在页，验证offset）。
+取最频繁出现的 offset 值。对于印刷页码从1开始的PDF，常见offset=0（无偏移）；对于含封面/目录的PDF，offset可能为正数。
 
 ### Step 3: 收集考点信息
 
@@ -73,8 +83,8 @@ with pdfplumber.open(path) as pdf:
 - 读取并解析大纲，确认涵盖的章节和知识点
 
 **方式B：用户只给了PDF，没有大纲**
-- 从PDF目录提取章节信息（通常在前30页）
-- 向用户列出可用章节，询问考试范围
+- 从各PDF提取章节信息
+- 向用户列出可用内容，询问考试范围
 - 根据用户反馈确定考点
 
 无论哪种方式，最终需要确认：
@@ -87,526 +97,75 @@ with pdfplumber.open(path) as pdf:
 生成 `复习笔记_考点版.md`，格式如下：
 
 ```markdown
-# 深度学习期末复习笔记（考点版）
+# 博弈论期末复习笔记（考点版）
 
-> 教材：XXX
-> 题型：选择/填空/简答/综合/代码
+> 教材：博弈论补充讲义
+> 题型：选择/填空/简答/计算
 
-## 一、模块名称
+## 一、基础理论
 
-### 考点N：考点名称
+### 考点1：理性人假设
 
 | 项目 | 内容 |
 |------|------|
-| **核心内容** | 关键公式、定义、概念 |
-| **对应教材** | §X.X pXX-pXX（印刷页码，注意：这些页码后续会被转为链接） |
-| **常见考法** | 题型标注 + 考察方式 |
-| **💡 记忆点** | 记忆口诀、对比表格、易错提醒 |
+| **核心内容** | ① 完备性：任意两个结果可比较；② 传递性：$A \succ B \land B \succ C \Rightarrow A \succ C$ |
+| **对应教材** | 讲义一 p1-p15 |
+| **常见考法** | 🅱 简答：理性人假设的内涵 |
+| **💡 记忆点** | 完备性=没有"无法比较"，传递性=没有"循环偏好" |
+```
 
-各考点覆盖教材对应章节，页码用 `p数字` 格式（如 `p105`），脚本后续会自动转为可点击链接。
+**跨文件页码引用**：当笔记引用不同PDF时，在页码前加**文件标识**：
+
+| 格式 | 含义 | 行为 |
+|------|------|------|
+| `p105` | 当前PDF第105页 | 跳转当前PDF到105页 |
+| `讲义三 p42` | 讲义三第42页 | 自动切换到讲义三PDF并跳转42页 |
+
+文件标识必须是 **中文字符**（如 `讲义一`、`参考资料`），并且必须与脚本 `PDF_FILES` 配置中的键名完全一致。
 
 在末尾附加按题型分类的速查表：
 - **选择题/填空题**：考点→核心要点
 - **简答题**：考点→关键话术
-- **代码题**：考点→关键实现
+- **计算题**：考点→关键公式
 
 ### 考点笔记编写原则
 
-1. **核心内容**：公式用 LaTeX `$...$` / `$$...$$` 包围；关键代码用 `code` 标注
-2. **对应教材**：务必标注印刷页码（非PDF页码），格式 `§X.X pXX-pXX`
-3. **常见考法**：用 🅰选择/🅱简答/🅲代码 标注
+1. **核心内容**：公式用 LaTeX `$...$` / `$$...$$` 包围
+2. **对应教材**：务必标注文件标识和印刷页码，格式 `讲义N pXX-pXX`
+3. **常见考法**：用 🅰选择/🅱简答/🅲计算 标注
 4. **💡 记忆点**：用对比、口诀、类比帮助记忆
 5. **表格注意事项**：
    - 不要在 LaTeX 公式中使用 `|` 管道符（会破坏 markdown 表格），改用 `\lVert` `\rVert` `\lvert` `\rvert`
    - 不要在 LaTeX 公式中使用 `<` 可能导致 HTML 标签解析，改用 `\lt`
    - 所有 LaTeX 公式用 `$` 或 `$$` 包围
 
-### Step 5: 生成 `generate_review_page.py`
+### Step 5: 配置 `generate_review_page.py`
 
-把以下完整脚本保存到与PDF和笔记同目录下的 `generate_review_page.py`：
+从本仓库拷贝 `generate_review_page.py` 到工作目录，编辑顶部的 `PDF_FILES` 配置：
 
 ```python
-#!/usr/bin/env python3
-"""将考点版笔记转换为左右分栏的HTML复习页面（使用PDF.js渲染PDF）"""
-import re
-import markdown
-import urllib.parse
-
-# PDF 文件名（替换为实际文件名）
-PDF_FILENAME = "教材PDF文件名.pdf"
-PDF_URL = urllib.parse.quote(PDF_FILENAME)
-
-# 印刷页码 → PDF 页码偏移量（Step 2 中确定的值）
-PAGE_OFFSET = 18
-
-# 读取 markdown 笔记
-with open("复习笔记_考点版.md", "r", encoding="utf-8") as f:
-    md_content = f.read()
-
-# 去掉图片引用
-md_content = re.sub(r'!\[.*?\]\(.*?\)', '', md_content)
-
-# 将 md 转为 html
-html_body = markdown.markdown(
-    md_content,
-    extensions=['tables', 'fenced_code', 'codehilite'],
-    extension_configs={'codehilite': {'css_class': 'highlight'}}
-)
-
-# 给页码添加可点击链接（印刷页码 → PDF页码）
-def add_page_links(text):
-    def replace_page(m):
-        num = int(m.group(1))
-        pdf_num = num + PAGE_OFFSET
-        return f'<a href="javascript:void(0)" onclick="jumpToPage({pdf_num})" class="page-link" title="教材第{num}页 → PDF第{pdf_num}页">p{num}</a>'
-    return re.sub(r'p(\d+)(?!\d*["\'>])', replace_page, text)
-
-html_body = add_page_links(html_body)
-
-html = f"""<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>期末复习</title>
-<!-- PDF.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
-<!-- KaTeX -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
-<style>
-  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-  html, body {{ height: 100%; overflow: hidden; font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; }}
-
-  .container {{ display: flex; height: 100vh; }}
-
-  /* ===== 左侧 PDF 面板 ===== */
-  .pdf-panel {{
-    display: flex; flex-direction: column;
-    background: #525659;
-    min-width: 200px;
-    width: calc(100% - 460px);
-  }}
-  .pdf-toolbar {{
-    background: #323639; color: #fff;
-    padding: 6px 16px;
-    display: flex; align-items: center; gap: 12px;
-    font-size: 13px; flex-shrink: 0;
-  }}
-  .pdf-toolbar input {{
-    width: 60px; padding: 2px 6px; text-align: center;
-    border: 1px solid #666; background: #1a1a1a; color: #fff; border-radius: 3px;
-  }}
-  .pdf-toolbar button,.pdf-toolbar select {{
-    background: #555; color: #fff; border: none; padding: 3px 10px;
-    border-radius: 3px; cursor: pointer; font-size: 12px;
-  }}
-  .pdf-toolbar button:hover,.pdf-toolbar select:hover {{ background: #777; }}
-  .pdf-toolbar .total {{ color: #aaa; font-size: 12px; }}
-  .pdf-toolbar .zoom-control {{ margin-left: auto; display: flex; align-items: center; gap: 4px; }}
-
-  .pdf-viewport {{
-    flex: 1; overflow: auto;
-    background: #525659;
-    position: relative;
-  }}
-  .pdf-viewport .pdf-wrapper {{
-    text-align: center;
-    padding: 10px;
-    min-width: 100%;
-  }}
-  .pdf-viewport .pdf-page-container {{
-    display: inline-block;
-    position: relative;
-  }}
-  .pdf-viewport canvas {{
-    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-    background: #fff;
-    display: block;
-  }}
-  /* PDF.js 文本层（支持选中/复制文字） */
-  .textLayer {{
-    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
-    line-height: 1.0;
-    overflow: hidden;
-    opacity: 0.25;
-  }}
-  .textLayer span, .textLayer br {{
-    color: transparent;
-    position: absolute;
-    white-space: pre;
-    cursor: text;
-    transform-origin: 0% 0%;
-  }}
-  .textLayer ::selection {{ background: rgba(60,132,244,0.4); color: transparent; }}
-  .textLayer ::-moz-selection {{ background: rgba(60,132,244,0.4); color: transparent; }}
-  .textLayer span.hl {{ background: rgba(255,255,0,0.5); border-radius: 2px; }}
-  .pdf-loading {{
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    color: #fff; text-align: center;
-  }}
-  .pdf-loading .spinner {{
-    border: 4px solid rgba(255,255,255,0.2);
-    border-top: 4px solid #fff;
-    border-radius: 50%;
-    width: 40px; height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 16px;
-  }}
-  @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
-  .pdf-error {{
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    color: #fff; text-align: center;
-    background: rgba(0,0,0,0.8);
-    padding: 30px; border-radius: 8px;
-    max-width: 400px;
-  }}
-  .pdf-error code {{ background: #444; padding: 2px 6px; border-radius: 3px; font-size: 13px; }}
-
-  /* ===== 拖拽分隔条 ===== */
-  .divider {{
-    width: 6px; background: #ccc; cursor: col-resize;
-    flex-shrink: 0; position: relative; z-index: 10;
-    transition: background 0.15s;
-  }}
-  .divider:hover, .divider.active {{ background: #3498db; }}
-  .divider::after {{
-    content: '\\22ee'; position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%); color: #999; font-size: 14px;
-  }}
-  .divider:hover::after, .divider.active::after {{ color: #fff; }}
-
-  /* ===== 右侧笔记面板 ===== */
-  .note-panel {{
-    display: flex; flex-direction: column;
-    background: #fafafa;
-    min-width: 300px; width: 460px;
-  }}
-  .note-header {{
-    background: #2c3e50; color: #fff;
-    padding: 10px 16px; font-size: 14px; font-weight: bold;
-    flex-shrink: 0; display: flex; justify-content: space-between; align-items: center;
-  }}
-  .note-header input {{
-    padding: 3px 8px; border: 1px solid #555; border-radius: 3px;
-    background: #1a1a1a; color: #fff; width: 150px; font-size: 12px;
-  }}
-  .note-header button {{
-    background: #3498db; color: #fff; border: none;
-    padding: 3px 10px; border-radius: 3px; cursor: pointer; font-size: 12px;
-  }}
-  .note-header button:hover {{ background: #2980b9; }}
-
-  .note-content {{
-    flex: 1; overflow-y: auto;
-    padding: 16px 20px; font-size: 14px; line-height: 1.7; color: #333;
-  }}
-
-  /* 笔记内容样式 */
-  .note-content h1 {{ font-size: 22px; margin: 0 0 10px; color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 6px; }}
-  .note-content h2 {{ font-size: 18px; margin: 20px 0 10px; color: #e74c3c; border-bottom: 1px solid #e74c3c; padding-bottom: 4px; }}
-  .note-content h3 {{ font-size: 16px; margin: 16px 0 8px; color: #2980b9; background: #eaf2f8; padding: 4px 10px; border-radius: 4px; }}
-  .note-content table {{
-    border-collapse: collapse; width: 100%; margin: 8px 0;
-    font-size: 13px; border: 1px solid #ddd;
-  }}
-  .note-content th, .note-content td {{ border: 1px solid #ddd; padding: 6px 10px; vertical-align: top; }}
-  .note-content th {{ background: #34495e; color: #fff; white-space: nowrap; width: 90px; }}
-  .note-content tr:nth-child(even) {{ background: #f8f9fa; }}
-  .note-content blockquote {{
-    border-left: 4px solid #2c3e50; margin: 8px 0; padding: 6px 12px;
-    background: #f0f4f8; color: #555; font-size: 13px;
-  }}
-  .note-content code {{
-    background: #f0f0f0; padding: 1px 5px; border-radius: 3px;
-    font-size: 13px; color: #c0392b; font-family: 'Consolas', monospace;
-  }}
-  .note-content strong {{ color: #2c3e50; }}
-
-  a.page-link {{
-    display: inline-block; background: #3498db; color: #fff !important;
-    padding: 0 5px; border-radius: 3px; text-decoration: none;
-    font-weight: bold; font-size: 12px; cursor: pointer;
-    transition: background 0.2s;
-  }}
-  a.page-link:hover {{ background: #e74c3c; }}
-
-  .highlight-match {{ background: #ffff99; padding: 0 2px; }}
-
-  @media (max-width: 900px) {{
-    .container {{ flex-direction: column; }}
-    .pdf-panel {{ height: 50vh; width: 100% !important; flex: none !important; }}
-    .note-panel {{ width: 100% !important; height: 50vh; flex: none !important; }}
-    .divider {{ display: none; }}
-  }}
-</style>
-</head>
-<body>
-
-<div class="container">
-  <!-- 左侧 PDF -->
-  <div class="pdf-panel">
-    <div class="pdf-toolbar">
-      <span>📄</span>
-      <button onclick="prevPage()" title="上一页">◀</button>
-      <span>第 <input type="text" id="pageInput" value="-" style="width:50px" onkeyup="if(event.key==='Enter')jumpToPage(parseInt(this.value))"> 页</span>
-      <span class="total" id="totalPages"></span>
-      <button onclick="nextPage()" title="下一页">▶</button>
-      <span class="zoom-control">
-        <button onclick="zoomOut()">−</button>
-        <span id="zoomLevel" style="color:#aaa;min-width:40px;text-align:center">100%</span>
-        <button onclick="zoomIn()">+</button>
-      </span>
-    </div>
-    <div class="pdf-viewport" id="pdfViewport">
-      <div class="pdf-loading" id="pdfLoading">
-        <div class="spinner"></div>
-        <div>正在加载 PDF...</div>
-      </div>
-      <div class="pdf-wrapper">
-        <div class="pdf-page-container">
-          <canvas id="pdfCanvas"></canvas>
-          <div class="textLayer" id="textLayer"></div>
-        </div>
-      </div>
-      <div class="pdf-error" id="pdfError" style="display:none">
-        <div style="font-size:36px;margin-bottom:10px">⚠️</div>
-        <div style="font-size:16px;margin-bottom:8px">PDF 加载失败</div>
-        <div style="font-size:13px;color:#aaa;margin-bottom:12px">
-          浏览器安全策略限制了本地文件访问。<br><br>
-          请用以下任一方式：<br><br>
-          <b>方式一（推荐）：</b><br>
-          在终端运行：<br>
-          <code>python3 -m http.server 8080</code><br>
-          然后访问 <code>http://localhost:8080/复习笔记_考点版.html</code><br><br>
-          <b>方式二：</b><br>
-          使用 Firefox 浏览器打开此页面
-        </div>
-        <button onclick="location.reload()" style="padding:8px 20px;background:#3498db;color:#fff;border:none;border-radius:4px;cursor:pointer">重新加载</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 拖拽分隔条 -->
-  <div class="divider" id="divider"></div>
-
-  <!-- 右侧笔记 -->
-  <div class="note-panel">
-    <div class="note-header">
-      <span>📝 考点笔记</span>
-      <div>
-        <input type="text" id="searchInput" placeholder="搜索..." style="width:120px" onkeyup="if(event.key==='Enter')doSearch()">
-        <button onclick="clearSearch()">✕</button>
-      </div>
-    </div>
-    <div class="note-content" id="noteContent">
-{html_body}
-    </div>
-  </div>
-</div>
-
-<script>
-// ===== PDF.js =====
-var pdfDoc = null, pageNum = 1, scale = 1.2, pageRendering = false;
-
-var canvas = document.getElementById('pdfCanvas');
-var ctx = canvas.getContext('2d');
-
-function loadPDF() {{
-    var url = '{PDF_URL}';
-    pdfjsLib.getDocument(url).promise.then(function(doc) {{
-        pdfDoc = doc;
-        document.getElementById('totalPages').textContent = '/ ' + doc.numPages + ' 页';
-        document.getElementById('pdfLoading').style.display = 'none';
-        renderPage(pageNum);
-    }}).catch(function(err) {{
-        console.error('PDF load error:', err);
-        document.getElementById('pdfLoading').style.display = 'none';
-        document.getElementById('pdfError').style.display = 'block';
-    }});
-}}
-
-function renderPage(num) {{
-    if (pageRendering || !pdfDoc) return;
-    pageRendering = true;
-
-    // 清除旧文本层
-    var textLayerDiv = document.getElementById('textLayer');
-    textLayerDiv.innerHTML = '';
-
-    pdfDoc.getPage(num).then(function(page) {{
-        var viewport = page.getViewport({{ scale: scale }});
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        canvas.style.width = viewport.width + 'px';
-        canvas.style.height = viewport.height + 'px';
-
-        var renderContext = {{
-            canvasContext: ctx,
-            viewport: viewport
-        }};
-
-        // 先渲染 canvas
-        return page.render(renderContext).promise.then(function() {{
-            // 再渲染文本层（支持选中/复制文字）
-            return page.getTextContent().then(function(textContent) {{
-                textLayerDiv.style.width = viewport.width + 'px';
-                textLayerDiv.style.height = viewport.height + 'px';
-                textLayerDiv.style.setProperty('--scale-factor', viewport.scale);
-                var task = pdfjsLib.renderTextLayer({{
-                    textContentSource: textContent,
-                    container: textLayerDiv,
-                    viewport: viewport,
-                    textDivs: [],
-                    enhanceTextSelection: true
-                }});
-                if (task && task.promise) return task.promise;
-            }});
-        }});
-    }}).then(function() {{
-        pageRendering = false;
-        pageNum = num;
-        document.getElementById('pageInput').value = num;
-        document.getElementById('pdfViewport').scrollTop = 0;
-    }}).catch(function(err) {{
-        pageRendering = false;
-        console.error('Render error:', err);
-    }});
-}}
-
-function jumpToPage(num) {{
-    num = parseInt(num);
-    if (isNaN(num) || !pdfDoc) return;
-    num = Math.max(1, Math.min(num, pdfDoc.numPages));
-    renderPage(num);
-}}
-
-function prevPage() {{ jumpToPage(pageNum - 1); }}
-function nextPage() {{ jumpToPage(pageNum + 1); }}
-
-function zoomIn() {{ scale = Math.min(scale + 0.1, 3.0); updateZoom(); }}
-function zoomOut() {{ scale = Math.max(scale - 0.1, 0.4); updateZoom(); }}
-function updateZoom() {{
-    document.getElementById('zoomLevel').textContent = Math.round(scale * 100) + '%';
-    if (pdfDoc) renderPage(pageNum);
-}}
-
-// 键盘快捷键
-document.addEventListener('keydown', function(e) {{
-    if (e.target.tagName === 'INPUT') return;
-    if (e.key === 'ArrowLeft') {{ e.preventDefault(); prevPage(); }}
-    if (e.key === 'ArrowRight') {{ e.preventDefault(); nextPage(); }}
-    if (e.key === '+' || e.key === '=') {{ e.preventDefault(); zoomIn(); }}
-    if (e.key === '-') {{ e.preventDefault(); zoomOut(); }}
-}});
-
-// 鼠标滚轮缩放（Ctrl+滚轮）
-document.getElementById('pdfViewport').addEventListener('wheel', function(e) {{
-    if (e.ctrlKey) {{ e.preventDefault(); if (e.deltaY < 0) zoomIn(); else zoomOut(); }}
-}}, {{ passive: false }});
-
-// ===== 搜索功能 =====
-function doSearch() {{
-    var query = document.getElementById('searchInput').value.trim().toLowerCase();
-    var content = document.getElementById('noteContent');
-    content.innerHTML = content.innerHTML.replace(/<span class="highlight-match">(.*?)<\\/span>/g, '$1');
-    if (!query) return;
-
-    var walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
-    var nodes = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode);
-
-    nodes.forEach(function(node) {{
-        if (node.parentNode && node.parentNode.classList.contains('highlight-match')) return;
-        var text = node.textContent.toLowerCase();
-        var idx = text.indexOf(query);
-        if (idx >= 0) {{
-            var span = document.createElement('span');
-            span.appendChild(document.createTextNode(node.textContent.substring(0, idx)));
-            var mark = document.createElement('span');
-            mark.className = 'highlight-match';
-            mark.textContent = node.textContent.substring(idx, idx + query.length);
-            span.appendChild(mark);
-            var after = node.textContent.substring(idx + query.length);
-            if (after) span.appendChild(document.createTextNode(after));
-            node.parentNode.replaceChild(span, node);
-        }}
-    }});
-}}
-
-function clearSearch() {{
-    document.getElementById('searchInput').value = '';
-    var c = document.getElementById('noteContent');
-    c.innerHTML = c.innerHTML.replace(/<span class="highlight-match">(.*?)<\\/span>/g, '$1');
-}}
-
-// ===== 拖拽分隔条 =====
-(function() {{
-    var divider = document.getElementById('divider');
-    var container = document.querySelector('.container');
-    var pdfPanel = document.querySelector('.pdf-panel');
-    var notePanel = document.querySelector('.note-panel');
-    var isDragging = false;
-
-    divider.addEventListener('mousedown', function() {{
-        isDragging = true;
-        divider.classList.add('active');
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
-    }});
-
-    document.addEventListener('mousemove', function(e) {{
-        if (!isDragging) return;
-        var rect = container.getBoundingClientRect();
-        var offset = e.clientX - rect.left;
-        var dw = 6, minL = 200, minR = 300;
-        var leftW = Math.max(minL, Math.min(offset, rect.width - minR - dw));
-        var rightW = rect.width - leftW - dw;
-        if (rightW < minR) {{ rightW = minR; leftW = rect.width - rightW - dw; }}
-        pdfPanel.style.width = leftW + 'px';
-        pdfPanel.style.flex = 'none';
-        notePanel.style.width = rightW + 'px';
-        notePanel.style.flex = 'none';
-    }});
-
-    document.addEventListener('mouseup', function() {{
-        if (isDragging) {{
-            isDragging = false;
-            divider.classList.remove('active');
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
-        }}
-    }});
-}})();
-
-// ===== 渲染 KaTeX =====
-try {{ renderMathInElement(document.getElementById('noteContent'), {{
-    delimiters: [{{left:'$$',right:'$$',display:true}},{{left:'$',right:'$',display:false}}],
-    throwOnError: false
-}}); }} catch(e) {{}}
-
-// ===== 启动加载 PDF =====
-loadPDF();
-</script>
-
-</body>
-</html>
-"""
-
-with open("复习笔记_考点版.html", "w", encoding="utf-8") as f:
-    f.write(html)
-
-print("✅ 已生成: 复习笔记_考点版.html")
+PDF_FILES = {
+    "default": {"file": "参考资料.pdf", "offset": 0, "label": "综合参考资料"},
+    "讲义一":  {"file": "博弈论补充讲义（一）.pdf", "offset": 0, "label": "讲义一：基础理论"},
+    "讲义二":  {"file": "博弈论补充讲义（二）.pdf", "offset": 0, "label": "讲义二：理性假设"},
+    # ... 按需增减
+}
+DEFAULT_PDF_KEY = "default"    # 默认打开的PDF
 ```
 
-脚本关键配置项：
-- `PDF_FILENAME` — 替换为实际PDF文件名
-- `PAGE_OFFSET` — 替换为 Step 2 确定的偏移量
-- 笔记文件名固定为 `复习笔记_考点版.md`
+每个配置项含义：
+| 字段 | 说明 |
+|------|------|
+| **key**（字典键名） | 笔记中跨文件引用的标识，如 `讲义三 p42` 中的"讲义三" |
+| **file** | PDF 文件名（与脚本同目录） |
+| **offset** | 印刷页码 → PDF 页码偏移量（Step 1-2 确定） |
+| **label** | 左侧工具栏下拉框中显示的名称 |
+
+也可以自动扫描：
+```bash
+python3 generate_review_page.py --scan     # 查看扫描结果
+python3 generate_review_page.py --scan --apply  # 直接应用
+```
 
 ### Step 6: 运行脚本
 
@@ -627,11 +186,20 @@ python3 -m http.server 8080
 http://localhost:8080/复习笔记_考点版.html
 ```
 
+### 功能速览
+
+用户打开页面后可：
+1. **左侧 PDF 面板**：工具栏下拉框可切换不同PDF，← → 翻页，Ctrl+滚轮缩放
+2. **跨文件跳转**：点击笔记中的 `讲义三 p42` 链接，自动切换到对应PDF并跳转至指定页
+3. **笔记搜索**：右上角搜索框实时高亮笔记内容
+4. **面板拖拽**：中间分隔条可拖拽调整左右面板宽度
+5. **右键高亮**：在PDF文字上选中文本后右键，可添加荧光笔高亮
+
 ### Step 8: 后续优化（按需）
 
 用户反馈问题后可能需要的修复：
 - **公式渲染问题**：md转html时 `|` 在LaTeX中破坏表格 → 替换为 `\lVert`/`\lvert`
 - **公式渲染问题**：`<` 被解析为HTML标签 → 替换为 `\lt`
 - **缩放敏感度**：调整 `zoomIn/Out` 步长（目前±0.1）
-- **页码映射不准确**：重新验证 offset 值，修改 PAGE_OFFSET
+- **页码映射不准确**：重新验证 offset 值
 - **PDF载入问题**：确认是否使用了 http://localhost:8080 而非 file:// 协议
