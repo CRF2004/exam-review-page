@@ -81,20 +81,30 @@ def add_page_links(text, pdf_files, default_key):
     valid_keys = sorted([k for k in pdf_files if k != default_key], key=len, reverse=True)
     chinese_keys = [k for k in valid_keys if re.fullmatch(r'[\u4e00-\u9fff]+', k)]
 
-    # Pass 1: 跨文件链接 (讲义N p\d+)
+    # Pass 1: 跨文件链接 (讲义N p\d+ 或 讲义N p\d+-p\d+)
     if chinese_keys:
         key_pattern = "|".join(re.escape(k) for k in chinese_keys)
-        cross_pattern = rf'({key_pattern})\s*p(\d+)(?!\d*["\'>])'
+        cross_pattern = rf'({key_pattern})\s*p(\d+)(?:-p(\d+))?(?!\d*["\'>])'
         def replace_cross(m):
             key = m.group(1)
-            num = int(m.group(2))
+            start = int(m.group(2))
             cfg = pdf_files[key]
-            pdf_num = num + cfg["offset"]
-            return (f'<a href="javascript:void(0)" '
-                    f'onclick="jumpToPage(\'{key}\', {pdf_num})" '
-                    f'class="page-link" '
-                    f'title="{cfg["label"]} 第{num}页 → PDF 第{pdf_num}页">'
-                    f'{key} p{num}</a>')
+            start_pdf = start + cfg["offset"]
+            result = (f'<a href="javascript:void(0)" '
+                      f'onclick="jumpToPage(\'{key}\', {start_pdf})" '
+                      f'class="page-link" '
+                      f'title="{cfg["label"]} 第{start}页 → PDF 第{start_pdf}页">'
+                      f'{key} p{start}</a>')
+            end_str = m.group(3)
+            if end_str:
+                end = int(end_str)
+                end_pdf = end + cfg["offset"]
+                result += (f'-<a href="javascript:void(0)" '
+                           f'onclick="jumpToPage(\'{key}\', {end_pdf})" '
+                           f'class="page-link" '
+                           f'title="{cfg["label"]} 第{end}页 → PDF 第{end_pdf}页">'
+                           f'p{end}</a>')
+            return result
         text = re.sub(cross_pattern, replace_cross, text)
 
     # Pass 2: 单文件链接 (p\d+)
