@@ -17,6 +17,10 @@ script/
 # Assets
 assets/
 
+# Experiments
+实验*.md
+期末.md
+
 # OS
 .DS_Store
 Thumbs.db
