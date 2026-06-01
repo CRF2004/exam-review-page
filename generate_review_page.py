@@ -113,9 +113,10 @@ html = f"""<!DOCTYPE html>
     cursor: text;
     transform-origin: 0% 0%;
   }}
-  .textLayer ::selection {{ background: rgba(60,132,244,0.4); color: transparent; }}
-  .textLayer ::-moz-selection {{ background: rgba(60,132,244,0.4); color: transparent; }}
-  .textLayer span.hl {{ background: rgba(255,255,0,0.5); border-radius: 2px; }}
+  .textLayer ::selection {{ background: rgba(40, 110, 255, 0.55); color: transparent; }}
+  .textLayer ::-moz-selection {{ background: rgba(40, 110, 255, 0.55); color: transparent; }}
+  .highlightLayer {{ position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; z-index: 2; }}
+  .hl-rect {{ position: absolute; background: rgba(255, 190, 0, 0.55); border-radius: 2px; }}
   .pdf-loading {{
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -241,9 +242,10 @@ html = f"""<!DOCTYPE html>
         <div>正在加载 PDF...</div>
       </div>
       <div class="pdf-wrapper">
-        <div class="pdf-page-container">
+        <div class="pdf-page-container" id="pdfPageContainer">
           <canvas id="pdfCanvas"></canvas>
           <div class="textLayer" id="textLayer"></div>
+          <div class="highlightLayer" id="highlightLayer"></div>
         </div>
       </div>
       <div class="pdf-error" id="pdfError" style="display:none">
@@ -285,8 +287,9 @@ html = f"""<!DOCTYPE html>
 <script>
 // ===== PDF.js =====
 var pdfDoc = null, pageNum = 1, scale = 1.2, pageRendering = false;
-var highlights = {{}}; // {{pageNum: [spanIndex, ...]}} 高亮标记
-var currentTextDivs = []; // renderTextLayer 创建的文本 span 数组
+var highlights = {{}}; // {{pageNum: [{{id, scale, rects: [{{left, top, width, height}},...]}},...]}}
+var currentTextDivs = []; // renderTextLayer API 需要
+var currentScale = 1.0; // 当前缩放，用于高亮坐标换算
 
 var canvas = document.getElementById('pdfCanvas');
 var ctx = canvas.getContext('2d');
@@ -316,14 +319,18 @@ function renderPage(num) {{
 
     pdfDoc.getPage(num).then(function(page) {{
         var viewport = page.getViewport({{ scale: scale }});
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
+        currentScale = viewport.scale;
+        // 设备像素比适配（Retina 清晰度）
+        var outputScale = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(viewport.width * outputScale);
+        canvas.height = Math.floor(viewport.height * outputScale);
         canvas.style.width = viewport.width + 'px';
         canvas.style.height = viewport.height + 'px';
 
         var renderContext = {{
             canvasContext: ctx,
-            viewport: viewport
+            viewport: viewport,
+            transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null
         }};
 
         // 先渲染 canvas
@@ -348,7 +355,7 @@ function renderPage(num) {{
         pageNum = num;
         document.getElementById('pageInput').value = num;
         document.getElementById('pdfViewport').scrollTop = 0;
-        // textDivs 已就绪，恢复高亮
+        // 恢复高亮
         restoreHighlights(num);
     }}).catch(function(err) {{
         pageRendering = false;
@@ -356,38 +363,99 @@ function renderPage(num) {{
     }});
 }}
 
-// ===== 高亮标记功能 =====
-function restoreHighlights(num) {{
-    if (!highlights[num]) return;
-    highlights[num].forEach(function(idx) {{
-        if (idx < currentTextDivs.length) {{
-            currentTextDivs[idx].classList.add('hl');
+// ===== 高亮标记功能 (Overlay 方案) =====
+
+// 判断两组矩形是否有重叠（按缩放换算）
+function rectsOverlap(a, b, sfA, sfB) {{
+    sfA = sfA || 1; sfB = sfB || 1;
+    for (var i = 0; i < a.length; i++) {{
+        var ax = a[i].left * sfA, ay = a[i].top * sfA, aw = a[i].width * sfA, ah = a[i].height * sfA;
+        for (var j = 0; j < b.length; j++) {{
+            var bx = b[j].left * sfB, by = b[j].top * sfB, bw = b[j].width * sfB, bh = b[j].height * sfB;
+            if (ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by) return true;
         }}
+    }}
+    return false;
+}}
+
+// 恢复高亮（在 overlay 中绘制矩形）
+function restoreHighlights(num) {{
+    var overlay = document.getElementById('highlightLayer');
+    overlay.innerHTML = '';
+    var recs = highlights[num] || [];
+    if (recs.length === 0) return;
+
+    recs.forEach(function(rec) {{
+        var sf = currentScale / rec.scale;
+        rec.rects.forEach(function(r) {{
+            var div = document.createElement('div');
+            div.className = 'hl-rect';
+            div.style.left = (r.left * sf) + 'px';
+            div.style.top = (r.top * sf) + 'px';
+            div.style.width = (r.width * sf) + 'px';
+            div.style.height = (r.height * sf) + 'px';
+            overlay.appendChild(div);
+        }});
     }});
 }}
 
+// 右键菜单：选中 + 右键高亮
 document.addEventListener('contextmenu', function(e) {{
-    // 只处理 textLayer 内的右键
     if (!e.target.closest('#textLayer')) return;
     var sel = window.getSelection();
-    if (!sel.isCollapsed && sel.rangeCount > 0) {{
-        e.preventDefault();
-        var range = sel.getRangeAt(0);
-        var indices = [];
-        currentTextDivs.forEach(function(div, idx) {{
-            if (range.intersectsNode(div)) indices.push(idx);
+    if (!sel || sel.isCollapsed || sel.rangeCount === 0) return;
+    e.preventDefault();
+
+    var range = sel.getRangeAt(0);
+    var selectedText = sel.toString();
+    if (!selectedText) return;
+
+    var clientRects = range.getClientRects();
+    if (!clientRects || clientRects.length === 0) return;
+
+    var pageContainer = e.target.closest('.pdf-page-container');
+    if (!pageContainer) return;
+    var containerRect = pageContainer.getBoundingClientRect();
+
+    var rects = [];
+    for (var i = 0; i < clientRects.length; i++) {{
+        var cr = clientRects[i];
+        if (cr.width < 1 || cr.height < 1) continue;
+        rects.push({{
+            left: cr.left - containerRect.left,
+            top: cr.top - containerRect.top,
+            width: cr.width,
+            height: cr.height
         }});
-        if (indices.length > 0) {{
-            if (!highlights[pageNum]) highlights[pageNum] = [];
-            indices.forEach(function(idx) {{
-                if (highlights[pageNum].indexOf(idx) === -1) {{
-                    highlights[pageNum].push(idx);
-                    currentTextDivs[idx].classList.add('hl');
-                }}
-            }});
-        }}
-        sel.removeAllRanges();
     }}
+
+    if (!highlights[pageNum]) highlights[pageNum] = [];
+
+    // 检查与已有高亮是否重叠
+    var toRemove = [];
+    highlights[pageNum].forEach(function(rec) {{
+        if (rectsOverlap(rects, rec.rects, 1, currentScale / rec.scale)) {{
+            toRemove.push(rec.id);
+        }}
+    }});
+
+    if (toRemove.length > 0) {{
+        highlights[pageNum] = highlights[pageNum].filter(function(rec) {{
+            return toRemove.indexOf(rec.id) === -1;
+        }});
+        if (highlights[pageNum].length === 0) delete highlights[pageNum];
+    }} else {{
+        var id = 'hl_' + Date.now() + '_' + highlights[pageNum].length;
+        highlights[pageNum].push({{
+            id: id,
+            scale: currentScale,
+            rects: rects,
+            createdAt: Date.now()
+        }});
+    }}
+
+    restoreHighlights(pageNum);
+    sel.removeAllRanges();
 }});
 
 function jumpToPage(num) {{
