@@ -86,17 +86,35 @@ html = f"""<!DOCTYPE html>
     position: relative;
   }}
   .pdf-viewport .pdf-wrapper {{
-    display: inline-block;
+    text-align: center;
     padding: 10px;
     min-width: 100%;
-    text-align: center;
+  }}
+  .pdf-viewport .pdf-page-container {{
+    display: inline-block;
+    position: relative;
   }}
   .pdf-viewport canvas {{
     box-shadow: 0 2px 12px rgba(0,0,0,0.3);
     background: #fff;
     display: block;
-    margin: 0 auto;
   }}
+  /* PDF.js 文本层（支持选中/复制文字） */
+  .textLayer {{
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    line-height: 1.0;
+    overflow: hidden;
+    opacity: 0.25;
+  }}
+  .textLayer span, .textLayer br {{
+    color: transparent;
+    position: absolute;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+  }}
+  .textLayer ::selection {{ background: rgba(60,132,244,0.4); color: transparent; }}
+  .textLayer ::-moz-selection {{ background: rgba(60,132,244,0.4); color: transparent; }}
   .pdf-loading {{
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -221,7 +239,12 @@ html = f"""<!DOCTYPE html>
         <div class="spinner"></div>
         <div>正在加载 PDF...</div>
       </div>
-      <div class="pdf-wrapper"><canvas id="pdfCanvas"></canvas></div>
+      <div class="pdf-wrapper">
+        <div class="pdf-page-container">
+          <canvas id="pdfCanvas"></canvas>
+          <div class="textLayer" id="textLayer"></div>
+        </div>
+      </div>
       <div class="pdf-error" id="pdfError" style="display:none">
         <div style="font-size:36px;margin-bottom:10px">⚠️</div>
         <div style="font-size:16px;margin-bottom:8px">PDF 加载失败</div>
@@ -283,6 +306,10 @@ function renderPage(num) {{
     if (pageRendering || !pdfDoc) return;
     pageRendering = true;
 
+    // 清除旧文本层
+    var textLayerDiv = document.getElementById('textLayer');
+    textLayerDiv.innerHTML = '';
+
     pdfDoc.getPage(num).then(function(page) {{
         var viewport = page.getViewport({{ scale: scale }});
         canvas.width = viewport.width;
@@ -295,12 +322,27 @@ function renderPage(num) {{
             viewport: viewport
         }};
 
-        return page.render(renderContext).promise;
+        // 先渲染 canvas
+        return page.render(renderContext).promise.then(function() {{
+            // 再渲染文本层（支持选中/复制文字）
+            return page.getTextContent().then(function(textContent) {{
+                textLayerDiv.style.width = viewport.width + 'px';
+                textLayerDiv.style.height = viewport.height + 'px';
+                textLayerDiv.style.setProperty('--scale-factor', viewport.scale);
+                var task = pdfjsLib.renderTextLayer({{
+                    textContentSource: textContent,
+                    container: textLayerDiv,
+                    viewport: viewport,
+                    textDivs: [],
+                    enhanceTextSelection: true
+                }});
+                if (task && task.promise) return task.promise;
+            }});
+        }});
     }}).then(function() {{
         pageRendering = false;
         pageNum = num;
         document.getElementById('pageInput').value = num;
-        // 滚动到顶部
         document.getElementById('pdfViewport').scrollTop = 0;
     }}).catch(function(err) {{
         pageRendering = false;
