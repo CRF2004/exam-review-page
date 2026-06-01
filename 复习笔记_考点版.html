@@ -6,7 +6,6 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>深度学习期末复习</title>
 <!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';</script>
@@ -29,12 +28,13 @@
   }
   .pdf-toolbar {
     background: #323639; color: #fff;
-    padding: 6px 16px;
-    display: flex; align-items: center; gap: 12px;
+    padding: 6px 12px;
+    display: flex; align-items: center; gap: 8px;
     font-size: 13px; flex-shrink: 0;
+    flex-wrap: wrap;
   }
   .pdf-toolbar input {
-    width: 60px; padding: 2px 6px; text-align: center;
+    width: 50px; padding: 2px 6px; text-align: center;
     border: 1px solid #666; background: #1a1a1a; color: #fff; border-radius: 3px;
   }
   .pdf-toolbar button,.pdf-toolbar select {
@@ -44,6 +44,13 @@
   .pdf-toolbar button:hover,.pdf-toolbar select:hover { background: #777; }
   .pdf-toolbar .total { color: #aaa; font-size: 12px; }
   .pdf-toolbar .zoom-control { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+  .pdf-file-select {
+    background: #444; color: #fff; border: none;
+    padding: 3px 8px; border-radius: 3px; font-size: 12px;
+    cursor: pointer; max-width: 180px;
+  }
+  .pdf-file-select:hover { background: #666; }
+  .pdf-file-select option { background: #333; color: #fff; }
 
   .pdf-viewport {
     flex: 1; overflow: auto;
@@ -64,7 +71,6 @@
     background: #fff;
     display: block;
   }
-  /* PDF.js 文本层（支持选中/复制文字） */
   .textLayer {
     position: absolute; left: 0; top: 0; right: 0; bottom: 0;
     line-height: 1.0;
@@ -132,7 +138,7 @@
   }
   .note-header input {
     padding: 3px 8px; border: 1px solid #555; border-radius: 3px;
-    background: #1a1a1a; color: #fff; width: 150px; font-size: 12px;
+    background: #1a1a1a; color: #fff; width: 120px; font-size: 12px;
   }
   .note-header button {
     background: #3498db; color: #fff; border: none;
@@ -144,8 +150,6 @@
     flex: 1; overflow-y: auto;
     padding: 16px 20px; font-size: 14px; line-height: 1.7; color: #333;
   }
-
-  /* 笔记内容样式 */
   .note-content h1 { font-size: 22px; margin: 0 0 10px; color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 6px; }
   .note-content h2 { font-size: 18px; margin: 20px 0 10px; color: #e74c3c; border-bottom: 1px solid #e74c3c; padding-bottom: 4px; }
   .note-content h3 { font-size: 16px; margin: 16px 0 8px; color: #2980b9; background: #eaf2f8; padding: 4px 10px; border-radius: 4px; }
@@ -187,14 +191,20 @@
 <body>
 
 <div class="container">
-  <!-- 左侧 PDF -->
+  <!-- 左侧 PDF 面板 -->
   <div class="pdf-panel">
     <div class="pdf-toolbar">
       <span>📄</span>
-      <button onclick="prevPage()" title="上一页">◀</button>
-      <span>第 <input type="text" id="pageInput" value="-" style="width:50px" onkeyup="if(event.key==='Enter')jumpToPage(parseInt(this.value))"> 页</span>
+      <select class="pdf-file-select" id="pdfSelector" onchange="switchPDF(this.value)">
+          <option value="讲义一" selected>讲义一：基础理论</option>
+          <option value="讲义三" >讲义三：静态博弈</option>
+          <option value="讲义六" >讲义六：动态博弈</option>
+      </select>
+      <button onclick="prevPage()" title="上一页 (←)">◀</button>
+      <span>第 <input type="text" id="pageInput" value="-" style="width:50px"
+          onkeyup="if(event.key==='Enter'){var v=parseInt(this.value);if(!isNaN(v))jumpToPage(null,v)}"> 页</span>
       <span class="total" id="totalPages"></span>
-      <button onclick="nextPage()" title="下一页">▶</button>
+      <button onclick="nextPage()" title="下一页 (→)">▶</button>
       <span class="zoom-control">
         <button onclick="zoomOut()">−</button>
         <span id="zoomLevel" style="color:#aaa;min-width:40px;text-align:center">100%</span>
@@ -217,7 +227,7 @@
         <div style="font-size:36px;margin-bottom:10px">⚠️</div>
         <div style="font-size:16px;margin-bottom:8px">PDF 加载失败</div>
         <div style="font-size:13px;color:#aaa;margin-bottom:12px">
-          浏览器安全策略限制了本地文件访问。<br><br>
+          浏览器安全策略限制了本地文件访问或文件不存在。<br><br>
           请用以下任一方式：<br><br>
           <b>方式一（推荐）：</b><br>
           在终端运行：<br>
@@ -266,7 +276,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§3.1 线性回归 <a href="javascript:void(0)" onclick="jumpToPage(103)" class="page-link" title="教材第85页 → PDF第103页">p85</a>-95；§3.2 从零实现 <a href="javascript:void(0)" onclick="jumpToPage(113)" class="page-link" title="教材第95页 → PDF第113页">p95</a>-100；§3.3 简洁实现 <a href="javascript:void(0)" onclick="jumpToPage(118)" class="page-link" title="教材第100页 → PDF第118页">p100</a>-104</td>
+<td>§3.1 线性回归 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 85)" class="page-link" title="教材第85页 → PDF 第85页">p85</a>-95；§3.2 从零实现 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 95)" class="page-link" title="教材第95页 → PDF 第95页">p95</a>-100；§3.3 简洁实现 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 100)" class="page-link" title="教材第100页 → PDF 第100页">p100</a>-104</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -293,7 +303,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§3.4 <a href="javascript:void(0)" onclick="jumpToPage(123)" class="page-link" title="教材第105页 → PDF第123页">p105</a>-111；§3.5 <a href="javascript:void(0)" onclick="jumpToPage(129)" class="page-link" title="教材第111页 → PDF第129页">p111</a>-114；§3.6-3.7 实现 <a href="javascript:void(0)" onclick="jumpToPage(133)" class="page-link" title="教材第115页 → PDF第133页">p115</a>-126</td>
+<td>§3.4 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 105)" class="page-link" title="教材第105页 → PDF 第105页">p105</a>-111；§3.5 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 111)" class="page-link" title="教材第111页 → PDF 第111页">p111</a>-114；§3.6-3.7 实现 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 115)" class="page-link" title="教材第115页 → PDF 第115页">p115</a>-126</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -320,7 +330,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§4.1 <a href="javascript:void(0)" onclick="jumpToPage(145)" class="page-link" title="教材第127页 → PDF第145页">p127</a>-133；§4.2-4.3 实现 <a href="javascript:void(0)" onclick="jumpToPage(152)" class="page-link" title="教材第134页 → PDF第152页">p134</a>-138</td>
+<td>§4.1 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 127)" class="page-link" title="教材第127页 → PDF 第127页">p127</a>-133；§4.2-4.3 实现 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 134)" class="page-link" title="教材第134页 → PDF 第134页">p134</a>-138</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -347,7 +357,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§4.4 过拟合和欠拟合 <a href="javascript:void(0)" onclick="jumpToPage(157)" class="page-link" title="教材第139页 → PDF第157页">p139</a>-149</td>
+<td>§4.4 过拟合和欠拟合 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 139)" class="page-link" title="教材第139页 → PDF 第139页">p139</a>-149</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -374,7 +384,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§4.5 权重衰减 <a href="javascript:void(0)" onclick="jumpToPage(167)" class="page-link" title="教材第149页 → PDF第167页">p149</a>-155</td>
+<td>§4.5 权重衰减 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 149)" class="page-link" title="教材第149页 → PDF 第149页">p149</a>-155</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -401,7 +411,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§4.6 Dropout <a href="javascript:void(0)" onclick="jumpToPage(174)" class="page-link" title="教材第156页 → PDF第174页">p156</a>-161</td>
+<td>§4.6 Dropout <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 156)" class="page-link" title="教材第156页 → PDF 第156页">p156</a>-161</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -413,8 +423,6 @@
 </tr>
 </tbody>
 </table>
-<p>丢弃np个，保留n(1-p)个，为了保持输出一致，则保留的需要被放大。</p>
-<p>假设输出为y，则输入Σx需要放大到y/n(1-p)，也就是每个x放大到y/(1-p)</p>
 <h3>考点7：数值稳定性 &amp; 模型初始化</h3>
 <table>
 <thead>
@@ -430,7 +438,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§4.8 <a href="javascript:void(0)" onclick="jumpToPage(184)" class="page-link" title="教材第166页 → PDF第184页">p166</a>-169；§4.7 前向/反向传播 <a href="javascript:void(0)" onclick="jumpToPage(180)" class="page-link" title="教材第162页 → PDF第180页">p162</a>-165</td>
+<td>§4.8 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 166)" class="page-link" title="教材第166页 → PDF 第166页">p166</a>-169；§4.7 前向/反向传播 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 162)" class="page-link" title="教材第162页 → PDF 第162页">p162</a>-165</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -461,7 +469,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§6.1-6.6 <a href="javascript:void(0)" onclick="jumpToPage(235)" class="page-link" title="教材第217页 → PDF第235页">p217</a>-245</td>
+<td>§6.1-6.6 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 217)" class="page-link" title="教材第217页 → PDF 第217页">p217</a>-245</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -488,7 +496,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§7.1 AlexNet <a href="javascript:void(0)" onclick="jumpToPage(266)" class="page-link" title="教材第248页 → PDF第266页">p248</a>-255</td>
+<td>§7.1 AlexNet <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 248)" class="page-link" title="教材第248页 → PDF 第248页">p248</a>-255</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -515,7 +523,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§7.2 VGG <a href="javascript:void(0)" onclick="jumpToPage(273)" class="page-link" title="教材第255页 → PDF第273页">p255</a>-258</td>
+<td>§7.2 VGG <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 255)" class="page-link" title="教材第255页 → PDF 第255页">p255</a>-258</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -542,7 +550,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§7.3 NiN <a href="javascript:void(0)" onclick="jumpToPage(277)" class="page-link" title="教材第259页 → PDF第277页">p259</a>-262</td>
+<td>§7.3 NiN <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 259)" class="page-link" title="教材第259页 → PDF 第259页">p259</a>-262</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -569,7 +577,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§7.4 GoogLeNet <a href="javascript:void(0)" onclick="jumpToPage(281)" class="page-link" title="教材第263页 → PDF第281页">p263</a>-267</td>
+<td>§7.4 GoogLeNet <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 263)" class="page-link" title="教材第263页 → PDF 第263页">p263</a>-267</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -596,7 +604,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§7.6 ResNet <a href="javascript:void(0)" onclick="jumpToPage(293)" class="page-link" title="教材第275页 → PDF第293页">p275</a>-288</td>
+<td>§7.6 ResNet <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 275)" class="page-link" title="教材第275页 → PDF 第275页">p275</a>-288</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -625,7 +633,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§8.4-8.7 <a href="javascript:void(0)" onclick="jumpToPage(330)" class="page-link" title="教材第312页 → PDF第330页">p312</a>-332</td>
+<td>§8.4-8.7 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 312)" class="page-link" title="教材第312页 → PDF 第312页">p312</a>-332</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -652,7 +660,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§9.1 GRU <a href="javascript:void(0)" onclick="jumpToPage(351)" class="page-link" title="教材第333页 → PDF第351页">p333</a>-341</td>
+<td>§9.1 GRU <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 333)" class="page-link" title="教材第333页 → PDF 第333页">p333</a>-341</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -679,7 +687,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§9.2 LSTM <a href="javascript:void(0)" onclick="jumpToPage(359)" class="page-link" title="教材第341页 → PDF第359页">p341</a>-349</td>
+<td>§9.2 LSTM <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 341)" class="page-link" title="教材第341页 → PDF 第341页">p341</a>-349</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -706,7 +714,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§9.3 <a href="javascript:void(0)" onclick="jumpToPage(367)" class="page-link" title="教材第349页 → PDF第367页">p349</a>-352；§9.4 <a href="javascript:void(0)" onclick="jumpToPage(370)" class="page-link" title="教材第352页 → PDF第370页">p352</a>-357</td>
+<td>§9.3 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 349)" class="page-link" title="教材第349页 → PDF 第349页">p349</a>-352；§9.4 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 352)" class="page-link" title="教材第352页 → PDF 第352页">p352</a>-357</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -733,7 +741,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§9.6-9.8 <a href="javascript:void(0)" onclick="jumpToPage(382)" class="page-link" title="教材第364页 → PDF第382页">p364</a>-380</td>
+<td>§9.6-9.8 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 364)" class="page-link" title="教材第364页 → PDF 第364页">p364</a>-380</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -760,7 +768,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§8.2 <a href="javascript:void(0)" onclick="jumpToPage(316)" class="page-link" title="教材第298页 → PDF第316页">p298</a>-302；§8.3 <a href="javascript:void(0)" onclick="jumpToPage(321)" class="page-link" title="教材第303页 → PDF第321页">p303</a>-312</td>
+<td>§8.2 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 298)" class="page-link" title="教材第298页 → PDF 第298页">p298</a>-302；§8.3 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 303)" class="page-link" title="教材第303页 → PDF 第303页">p303</a>-312</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -789,7 +797,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§10.1-10.3 <a href="javascript:void(0)" onclick="jumpToPage(399)" class="page-link" title="教材第381页 → PDF第399页">p381</a>-398；§10.5 <a href="javascript:void(0)" onclick="jumpToPage(422)" class="page-link" title="教材第404页 → PDF第422页">p404</a>-408；§10.6 <a href="javascript:void(0)" onclick="jumpToPage(426)" class="page-link" title="教材第408页 → PDF第426页">p408</a>-413</td>
+<td>§10.1-10.3 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 381)" class="page-link" title="教材第381页 → PDF 第381页">p381</a>-398；§10.5 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 404)" class="page-link" title="教材第404页 → PDF 第404页">p404</a>-408；§10.6 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 408)" class="page-link" title="教材第408页 → PDF 第408页">p408</a>-413</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -816,7 +824,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§10.4 Bahdanau注意力 <a href="javascript:void(0)" onclick="jumpToPage(417)" class="page-link" title="教材第399页 → PDF第417页">p399</a>-403</td>
+<td>§10.4 Bahdanau注意力 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 399)" class="page-link" title="教材第399页 → PDF 第399页">p399</a>-403</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -843,7 +851,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§10.7 <a href="javascript:void(0)" onclick="jumpToPage(431)" class="page-link" title="教材第413页 → PDF第431页">p413</a>-426；§10.6 位置编码 <a href="javascript:void(0)" onclick="jumpToPage(428)" class="page-link" title="教材第410页 → PDF第428页">p410</a>-413</td>
+<td>§10.7 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 413)" class="page-link" title="教材第413页 → PDF 第413页">p413</a>-426；§10.6 位置编码 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 410)" class="page-link" title="教材第410页 → PDF 第410页">p410</a>-413</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -870,7 +878,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§14.8 BERT <a href="javascript:void(0)" onclick="jumpToPage(697)" class="page-link" title="教材第679页 → PDF第697页">p679</a>-691；§14.9-14.10 <a href="javascript:void(0)" onclick="jumpToPage(710)" class="page-link" title="教材第692页 → PDF第710页">p692</a>-702</td>
+<td>§14.8 BERT <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 679)" class="page-link" title="教材第679页 → PDF 第679页">p679</a>-691；§14.9-14.10 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 692)" class="page-link" title="教材第692页 → PDF 第692页">p692</a>-702</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -899,7 +907,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§13.1 图像增广 <a href="javascript:void(0)" onclick="jumpToPage(567)" class="page-link" title="教材第549页 → PDF第567页">p549</a>-557</td>
+<td>§13.1 图像增广 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 549)" class="page-link" title="教材第549页 → PDF 第549页">p549</a>-557</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -926,7 +934,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§13.2 微调 <a href="javascript:void(0)" onclick="jumpToPage(575)" class="page-link" title="教材第557页 → PDF第575页">p557</a>-563</td>
+<td>§13.2 微调 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 557)" class="page-link" title="教材第557页 → PDF 第557页">p557</a>-563</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -953,7 +961,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§13.3-13.8 <a href="javascript:void(0)" onclick="jumpToPage(582)" class="page-link" title="教材第564页 → PDF第582页">p564</a>-605</td>
+<td>§13.3-13.8 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 564)" class="page-link" title="教材第564页 → PDF 第564页">p564</a>-605</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -980,7 +988,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§13.9-13.11 <a href="javascript:void(0)" onclick="jumpToPage(623)" class="page-link" title="教材第605页 → PDF第623页">p605</a>-623</td>
+<td>§13.9-13.11 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 605)" class="page-link" title="教材第605页 → PDF 第605页">p605</a>-623</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -1007,7 +1015,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§13.12 风格迁移 <a href="javascript:void(0)" onclick="jumpToPage(642)" class="page-link" title="教材第624页 → PDF第642页">p624</a>-632</td>
+<td>§13.12 风格迁移 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 624)" class="page-link" title="教材第624页 → PDF 第624页">p624</a>-632</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -1036,7 +1044,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§9.5 机器翻译 <a href="javascript:void(0)" onclick="jumpToPage(375)" class="page-link" title="教材第357页 → PDF第375页">p357</a>-362</td>
+<td>§9.5 机器翻译 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 357)" class="page-link" title="教材第357页 → PDF 第357页">p357</a>-362</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -1059,7 +1067,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§15.4 <a href="javascript:void(0)" onclick="jumpToPage(737)" class="page-link" title="教材第719页 → PDF第737页">p719</a>-723；§15.5 <a href="javascript:void(0)" onclick="jumpToPage(742)" class="page-link" title="教材第724页 → PDF第742页">p724</a>-730</td>
+<td>§15.4 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 719)" class="page-link" title="教材第719页 → PDF 第719页">p719</a>-723；§15.5 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 724)" class="page-link" title="教材第724页 → PDF 第724页">p724</a>-730</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -1086,7 +1094,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§15.6 微调BERT <a href="javascript:void(0)" onclick="jumpToPage(749)" class="page-link" title="教材第731页 → PDF第749页">p731</a>-740</td>
+<td>§15.6 微调BERT <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 731)" class="page-link" title="教材第731页 → PDF 第731页">p731</a>-740</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -1115,7 +1123,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§12.4 硬件 <a href="javascript:void(0)" onclick="jumpToPage(535)" class="page-link" title="教材第517页 → PDF第535页">p517</a>-527</td>
+<td>§12.4 硬件 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 517)" class="page-link" title="教材第517页 → PDF 第517页">p517</a>-527</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -1142,7 +1150,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§12.5-12.7 <a href="javascript:void(0)" onclick="jumpToPage(546)" class="page-link" title="教材第528页 → PDF第546页">p528</a>-548</td>
+<td>§12.5-12.7 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 528)" class="page-link" title="教材第528页 → PDF 第528页">p528</a>-548</td>
 </tr>
 <tr>
 <td><strong>常见考法</strong></td>
@@ -1171,7 +1179,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§4.10 <a href="javascript:void(0)" onclick="jumpToPage(198)" class="page-link" title="教材第180页 → PDF第198页">p180</a>-188</td>
+<td>§4.10 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 180)" class="page-link" title="教材第180页 → PDF 第180页">p180</a>-188</td>
 </tr>
 <tr>
 <td><strong>💡 记忆点</strong></td>
@@ -1194,7 +1202,7 @@
 </tr>
 <tr>
 <td><strong>对应教材</strong></td>
-<td>§13.13-13.14 <a href="javascript:void(0)" onclick="jumpToPage(651)" class="page-link" title="教材第633页 → PDF第651页">p633</a>-648</td>
+<td>§13.13-13.14 <a href="javascript:void(0)" onclick="jumpToPage('讲义一', 633)" class="page-link" title="教材第633页 → PDF 第633页">p633</a>-648</td>
 </tr>
 <tr>
 <td><strong>💡 记忆点</strong></td>
@@ -1364,21 +1372,53 @@
 </div>
 
 <script>
-// ===== PDF.js =====
+// ===== 多 PDF 配置（由 Python 脚本生成）=====
+var PDF_CONFIG = {"讲义一": {"file": "materials/博弈论补充讲义（一）.pdf", "offset": 0, "label": "讲义一：基础理论"}, "讲义三": {"file": "materials/博弈论补充讲义（三）.pdf", "offset": 0, "label": "讲义三：静态博弈"}, "讲义六": {"file": "materials/博弈论补充讲义（六）-.pdf", "offset": 0, "label": "讲义六：动态博弈"}};
+var DEFAULT_KEY = '讲义一';
+
+// ===== 状态 =====
 var pdfDoc = null, pageNum = 1, scale = 1.2, pageRendering = false;
-var highlights = {}; // {pageNum: [{id, scale, rects: [{left, top, width, height},...]},...]}
-var currentTextDivs = []; // renderTextLayer API 需要
-var currentScale = 1.0; // 当前缩放，用于高亮坐标换算
+var highlights = {}; // {pageNum: [{id, scale, rects: [{left,top,width,height},...]},...]}
+var currentScale = 1.0;
+var currentFile = DEFAULT_KEY;
+var fileStates = {}; // {fileKey: {pageNum: N, highlights: H }}
+var pdfDocs = {}; // {fileKey: pdfDoc} — 已加载PDF文档缓存
+
+// 抑制 PDF.js 字体加载警告（常见于嵌入字体，不影响显示）
+(function() {
+    var origWarn = console.warn;
+    console.warn = function(msg) {
+        if (typeof msg === 'string' && msg.indexOf('Failed to load font') >= 0) return;
+        origWarn.apply(console, arguments);
+    };
+})();
 
 var canvas = document.getElementById('pdfCanvas');
 var ctx = canvas.getContext('2d');
 
-function loadPDF() {
-    var url = '%E5%8A%A8%E6%89%8B%E5%AD%A6%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0-PyTorch%28%E7%AC%AC%E4%BA%8C%E7%89%88%29%20%28Aston%20Zhang%2C%20Zachary%20C.%20Lipton%2C%20%E6%9D%8E%E6%B2%90%20etc.%29%20%28z-library.sk%2C%201lib.sk%2C%20z-lib.sk%29.pdf';
+// ===== PDF 加载 & 切换 =====
+
+function loadPDF(fileKey, pageToRender) {
+    var config = PDF_CONFIG[fileKey];
+    if (!config) { console.error('Unknown PDF key:', fileKey); return; }
+    var url = encodeURI(config.file);
+    document.getElementById('pdfLoading').style.display = 'block';
+    document.getElementById('pdfError').style.display = 'none';
+
+    if (pdfDocs[fileKey]) {
+        pdfDoc = pdfDocs[fileKey];
+        document.getElementById('pdfLoading').style.display = 'none';
+        pageNum = pageToRender || 1;
+        renderPage(pageNum);
+        return;
+    }
+
     pdfjsLib.getDocument(url).promise.then(function(doc) {
+        pdfDocs[fileKey] = doc;
         pdfDoc = doc;
         document.getElementById('totalPages').textContent = '/ ' + doc.numPages + ' 页';
         document.getElementById('pdfLoading').style.display = 'none';
+        pageNum = pageToRender || 1;
         renderPage(pageNum);
     }).catch(function(err) {
         console.error('PDF load error:', err);
@@ -1387,19 +1427,31 @@ function loadPDF() {
     });
 }
 
+function switchPDF(fileKey) {
+    if (fileKey === currentFile && pdfDoc) return;
+    // 保存当前状态
+    if (pdfDoc) {
+        fileStates[currentFile] = { pageNum: pageNum, highlights: JSON.parse(JSON.stringify(highlights)) };
+    }
+    currentFile = fileKey;
+    document.getElementById('pdfSelector').value = fileKey;
+    var state = fileStates[fileKey];
+    highlights = (state && state.highlights) ? state.highlights : {};
+    loadPDF(fileKey, state ? state.pageNum : 1);
+}
+
+// ===== 渲染（含 HiDPI）=====
+
 function renderPage(num) {
     if (pageRendering || !pdfDoc) return;
     pageRendering = true;
 
-    // 清除旧文本层及 textDivs 引用
     var textLayerDiv = document.getElementById('textLayer');
     textLayerDiv.innerHTML = '';
-    currentTextDivs = [];
 
     pdfDoc.getPage(num).then(function(page) {
         var viewport = page.getViewport({ scale: scale });
         currentScale = viewport.scale;
-        // 设备像素比适配（Retina 清晰度）
         var outputScale = window.devicePixelRatio || 1;
         canvas.width = Math.floor(viewport.width * outputScale);
         canvas.height = Math.floor(viewport.height * outputScale);
@@ -1412,9 +1464,7 @@ function renderPage(num) {
             transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null
         };
 
-        // 先渲染 canvas
         return page.render(renderContext).promise.then(function() {
-            // 再渲染文本层（支持选中/复制文字）
             return page.getTextContent().then(function(textContent) {
                 textLayerDiv.style.width = viewport.width + 'px';
                 textLayerDiv.style.height = viewport.height + 'px';
@@ -1423,7 +1473,7 @@ function renderPage(num) {
                     textContentSource: textContent,
                     container: textLayerDiv,
                     viewport: viewport,
-                    textDivs: currentTextDivs,
+                    textDivs: [],
                     enhanceTextSelection: false
                 });
                 if (task && task.promise) return task.promise;
@@ -1434,7 +1484,6 @@ function renderPage(num) {
         pageNum = num;
         document.getElementById('pageInput').value = num;
         document.getElementById('pdfViewport').scrollTop = 0;
-        // 恢复高亮
         restoreHighlights(num);
     }).catch(function(err) {
         pageRendering = false;
@@ -1442,9 +1491,8 @@ function renderPage(num) {
     });
 }
 
-// ===== 高亮标记功能 (Overlay 方案) =====
+// ===== 高亮标记（Overlay 方案）=====
 
-// 判断两组矩形是否有重叠（按缩放换算）
 function rectsOverlap(a, b, sfA, sfB) {
     sfA = sfA || 1; sfB = sfB || 1;
     for (var i = 0; i < a.length; i++) {
@@ -1457,28 +1505,26 @@ function rectsOverlap(a, b, sfA, sfB) {
     return false;
 }
 
-// 恢复高亮（在 overlay 中绘制矩形）
 function restoreHighlights(num) {
     var overlay = document.getElementById('highlightLayer');
     overlay.innerHTML = '';
     var recs = highlights[num] || [];
     if (recs.length === 0) return;
-
     recs.forEach(function(rec) {
         var sf = currentScale / rec.scale;
         rec.rects.forEach(function(r) {
-            var div = document.createElement('div');
-            div.className = 'hl-rect';
-            div.style.left = (r.left * sf) + 'px';
-            div.style.top = (r.top * sf) + 'px';
-            div.style.width = (r.width * sf) + 'px';
-            div.style.height = (r.height * sf) + 'px';
-            overlay.appendChild(div);
+            var d = document.createElement('div');
+            d.className = 'hl-rect';
+            d.style.left = (r.left * sf) + 'px';
+            d.style.top = (r.top * sf) + 'px';
+            d.style.width = (r.width * sf) + 'px';
+            d.style.height = (r.height * sf) + 'px';
+            overlay.appendChild(d);
         });
     });
 }
 
-// 右键菜单：选中 + 右键高亮
+// 右键菜单：选中文本 → 高亮 / 已高亮则取消
 document.addEventListener('contextmenu', function(e) {
     if (!e.target.closest('#textLayer')) return;
     var sel = window.getSelection();
@@ -1486,8 +1532,7 @@ document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
 
     var range = sel.getRangeAt(0);
-    var selectedText = sel.toString();
-    if (!selectedText) return;
+    if (!sel.toString()) return;
 
     var clientRects = range.getClientRects();
     if (!clientRects || clientRects.length === 0) return;
@@ -1510,7 +1555,7 @@ document.addEventListener('contextmenu', function(e) {
 
     if (!highlights[pageNum]) highlights[pageNum] = [];
 
-    // 检查与已有高亮是否重叠
+    // 检查与已有高亮是否重叠 → 重叠则删除（toggle效果）
     var toRemove = [];
     highlights[pageNum].forEach(function(rec) {
         if (rectsOverlap(rects, rec.rects, 1, currentScale / rec.scale)) {
@@ -1524,12 +1569,10 @@ document.addEventListener('contextmenu', function(e) {
         });
         if (highlights[pageNum].length === 0) delete highlights[pageNum];
     } else {
-        var id = 'hl_' + Date.now() + '_' + highlights[pageNum].length;
         highlights[pageNum].push({
-            id: id,
+            id: 'hl_' + Date.now() + '_' + highlights[pageNum].length,
             scale: currentScale,
-            rects: rects,
-            createdAt: Date.now()
+            rects: rects
         });
     }
 
@@ -1537,16 +1580,32 @@ document.addEventListener('contextmenu', function(e) {
     sel.removeAllRanges();
 });
 
-function jumpToPage(num) {
+// ===== 页面跳转（核心：支持跨文件）=====
+
+function jumpToPage(fileKey, num) {
     num = parseInt(num);
-    if (isNaN(num) || !pdfDoc) return;
+    if (isNaN(num)) return;
+
+    if (fileKey && fileKey !== currentFile) {
+        if (pdfDoc) {
+            fileStates[currentFile] = { pageNum: pageNum, highlights: JSON.parse(JSON.stringify(highlights)) };
+        }
+        currentFile = fileKey;
+        document.getElementById('pdfSelector').value = fileKey;
+        highlights = {};
+        loadPDF(fileKey, num);
+        return;
+    }
+
+    if (!pdfDoc) return;
     num = Math.max(1, Math.min(num, pdfDoc.numPages));
     renderPage(num);
 }
 
-function prevPage() { jumpToPage(pageNum - 1); }
-function nextPage() { jumpToPage(pageNum + 1); }
+function prevPage() { jumpToPage(null, pageNum - 1); }
+function nextPage() { jumpToPage(null, pageNum + 1); }
 
+// ===== 缩放 =====
 function zoomIn() { scale = Math.min(scale + 0.1, 3.0); updateZoom(); }
 function zoomOut() { scale = Math.max(scale - 0.1, 0.4); updateZoom(); }
 function updateZoom() {
@@ -1554,32 +1613,28 @@ function updateZoom() {
     if (pdfDoc) renderPage(pageNum);
 }
 
-// 键盘快捷键
+// ===== 键盘快捷键 =====
 document.addEventListener('keydown', function(e) {
-    if (e.target.tagName === 'INPUT') return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
     if (e.key === 'ArrowLeft') { e.preventDefault(); prevPage(); }
     if (e.key === 'ArrowRight') { e.preventDefault(); nextPage(); }
     if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomIn(); }
     if (e.key === '-') { e.preventDefault(); zoomOut(); }
 });
 
-// 鼠标滚轮缩放（Ctrl+滚轮）
 document.getElementById('pdfViewport').addEventListener('wheel', function(e) {
     if (e.ctrlKey) { e.preventDefault(); if (e.deltaY < 0) zoomIn(); else zoomOut(); }
 }, { passive: false });
 
-// ===== 搜索功能 =====
+// ===== 搜索 =====
 function doSearch() {
     var query = document.getElementById('searchInput').value.trim().toLowerCase();
     var content = document.getElementById('noteContent');
-    // 清除旧高亮
     content.innerHTML = content.innerHTML.replace(/<span class="highlight-match">(.*?)<\/span>/g, '$1');
     if (!query) return;
-
     var walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
     var nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
-
     nodes.forEach(function(node) {
         if (node.parentNode && node.parentNode.classList.contains('highlight-match')) return;
         var text = node.textContent.toLowerCase();
@@ -1597,7 +1652,6 @@ function doSearch() {
         }
     });
 }
-
 function clearSearch() {
     document.getElementById('searchInput').value = '';
     var c = document.getElementById('noteContent');
@@ -1611,14 +1665,10 @@ function clearSearch() {
     var pdfPanel = document.querySelector('.pdf-panel');
     var notePanel = document.querySelector('.note-panel');
     var isDragging = false;
-
     divider.addEventListener('mousedown', function() {
-        isDragging = true;
-        divider.classList.add('active');
-        document.body.style.cursor = 'col-resize';
-        document.body.style.userSelect = 'none';
+        isDragging = true; divider.classList.add('active');
+        document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
     });
-
     document.addEventListener('mousemove', function(e) {
         if (!isDragging) return;
         var rect = container.getBoundingClientRect();
@@ -1627,30 +1677,25 @@ function clearSearch() {
         var leftW = Math.max(minL, Math.min(offset, rect.width - minR - dw));
         var rightW = rect.width - leftW - dw;
         if (rightW < minR) { rightW = minR; leftW = rect.width - rightW - dw; }
-        pdfPanel.style.width = leftW + 'px';
-        pdfPanel.style.flex = 'none';
-        notePanel.style.width = rightW + 'px';
-        notePanel.style.flex = 'none';
+        pdfPanel.style.width = leftW + 'px'; pdfPanel.style.flex = 'none';
+        notePanel.style.width = rightW + 'px'; notePanel.style.flex = 'none';
     });
-
     document.addEventListener('mouseup', function() {
         if (isDragging) {
-            isDragging = false;
-            divider.classList.remove('active');
-            document.body.style.cursor = '';
-            document.body.style.userSelect = '';
+            isDragging = false; divider.classList.remove('active');
+            document.body.style.cursor = ''; document.body.style.userSelect = '';
         }
     });
 })();
 
-// ===== 渲染 KaTeX =====
+// ===== KaTeX =====
 try { renderMathInElement(document.getElementById('noteContent'), {
     delimiters: [{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],
     throwOnError: false
 }); } catch(e) {}
 
-// ===== 启动加载 PDF =====
-loadPDF();
+// ===== 启动 =====
+loadPDF(DEFAULT_KEY, 1);
 </script>
 
 </body>
