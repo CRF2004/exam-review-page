@@ -1,7 +1,10 @@
 # Large binary files
-*.pdf
 *.docx
 *.doc
+
+# Large binary files - except the textbook PDF
+*.pdf
+!动手学深度学习*.pdf
 
 # Data / results
 data/
