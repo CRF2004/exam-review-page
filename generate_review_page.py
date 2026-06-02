@@ -224,6 +224,69 @@ def build_html(html_body, pdf_files, default_key, page_title):
   .textLayer ::-moz-selection {{ background: rgba(40, 110, 255, 0.55); color: transparent; }}
   .highlightLayer {{ position: absolute; left: 0; top: 0; right: 0; bottom: 0; pointer-events: none; z-index: 2; }}
   .hl-rect {{ position: absolute; background: rgba(255, 190, 0, 0.55); border-radius: 2px; }}
+  .annotationLayer {{
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    z-index: 3; pointer-events: none;
+  }}
+  .text-note {{
+    position: absolute;
+    min-width: 120px;
+    min-height: 72px;
+    border: 1px solid rgba(245, 166, 35, 0.95);
+    border-radius: 8px;
+    background: rgba(255, 248, 196, 0.96);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    overflow: hidden;
+    pointer-events: auto;
+  }}
+  .text-note.selected {{
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.35), 0 10px 26px rgba(0,0,0,0.22);
+  }}
+  .text-note-header {{
+    height: 28px;
+    padding: 0 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(245, 166, 35, 0.92);
+    color: #4a3a00;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: move;
+    user-select: none;
+  }}
+  .text-note-delete {{
+    background: transparent;
+    border: none;
+    color: #4a3a00;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 2px;
+  }}
+  .text-note-body {{
+    width: 100%;
+    height: calc(100% - 28px);
+    border: none;
+    outline: none;
+    resize: none;
+    padding: 8px 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #333;
+    background: transparent;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  }}
+  .text-note-resizer {{
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    right: 2px;
+    bottom: 2px;
+    cursor: nwse-resize;
+    background:
+      linear-gradient(135deg, transparent 0 42%, rgba(74,58,0,0.65) 42% 54%, transparent 54% 66%, rgba(74,58,0,0.65) 66% 78%, transparent 78%);
+  }}
   .pdf-loading {{
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
@@ -340,6 +403,7 @@ def build_html(html_body, pdf_files, default_key, page_title):
       <span class="total" id="totalPages"></span>
       <button onclick="nextPage()" title="下一页 (→)">▶</button>
       <span class="zoom-control">
+        <button onclick="insertTextNote()" title="在当前页插入文本框">＋笔记框</button>
         <button onclick="zoomOut()">−</button>
         <span id="zoomLevel" style="color:#aaa;min-width:40px;text-align:center">100%</span>
         <button onclick="zoomIn()">+</button>
@@ -355,6 +419,7 @@ def build_html(html_body, pdf_files, default_key, page_title):
           <canvas id="pdfCanvas"></canvas>
           <div class="textLayer" id="textLayer"></div>
           <div class="highlightLayer" id="highlightLayer"></div>
+          <div class="annotationLayer" id="annotationLayer"></div>
         </div>
       </div>
       <div class="pdf-error" id="pdfError" style="display:none">
@@ -401,10 +466,14 @@ var DEFAULT_KEY = '{default_key}';
 // ===== 状态 =====
 var pdfDoc = null, pageNum = 1, scale = 1.2, pageRendering = false;
 var highlights = {{}}; // {{pageNum: [{{id, scale, rects: [{{left,top,width,height}},...]}},...]}}
+var textNotes = {{}}; // {{pageNum: [{{id,left,top,width,height,text}}]}}; 均为相对页面宽高的比例
 var currentScale = 1.0;
 var currentFile = DEFAULT_KEY;
-var fileStates = {{}}; // {{fileKey: {{pageNum: N, highlights: H }}}}
+var fileStates = {{}}; // {{fileKey: {{pageNum: N, highlights: H, textNotes: T }}}}
 var pdfDocs = {{}}; // {{fileKey: pdfDoc}} — 已加载PDF文档缓存
+var currentPageWidth = 0, currentPageHeight = 0;
+var activeNoteId = null;
+var annotationStorageKey = 'exam-review-annotations-v1:' + location.pathname;
 
 // 抑制 PDF.js 字体加载警告（常见于嵌入字体，不影响显示）
 (function() {{
@@ -418,19 +487,67 @@ var pdfDocs = {{}}; // {{fileKey: pdfDoc}} — 已加载PDF文档缓存
 var canvas = document.getElementById('pdfCanvas');
 var ctx = canvas.getContext('2d');
 
+function cloneData(obj) {{
+    return JSON.parse(JSON.stringify(obj || {{}}));
+}}
+
+function loadAnnotationStorage() {{
+    try {{
+        var raw = localStorage.getItem(annotationStorageKey);
+        if (!raw) return {{}};
+        var parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : {{}};
+    }} catch (e) {{
+        console.warn('Failed to read saved annotations:', e);
+        return {{}};
+    }}
+}}
+
+function saveAnnotationStorage() {{
+    try {{
+        var all = loadAnnotationStorage();
+        all[currentFile] = {{
+            pageNum: pageNum,
+            highlights: cloneData(highlights),
+            textNotes: cloneData(textNotes)
+        }};
+        localStorage.setItem(annotationStorageKey, JSON.stringify(all));
+    }} catch (e) {{
+        console.warn('Failed to save annotations:', e);
+    }}
+}}
+
+function loadSavedState(fileKey) {{
+    var all = loadAnnotationStorage();
+    if (all[fileKey] && typeof all[fileKey] === 'object') {{
+        return {{
+            pageNum: all[fileKey].pageNum || 1,
+            highlights: cloneData(all[fileKey].highlights),
+            textNotes: cloneData(all[fileKey].textNotes)
+        }};
+    }}
+    return null;
+}}
+
 // ===== PDF 加载 & 切换 =====
 
 function loadPDF(fileKey, pageToRender) {{
     var config = PDF_CONFIG[fileKey];
     if (!config) {{ console.error('Unknown PDF key:', fileKey); return; }}
     var url = encodeURI(config.file);
+    var savedState = loadAnnotationStorage()[fileKey] ? loadSavedState(fileKey) : null;
     document.getElementById('pdfLoading').style.display = 'block';
     document.getElementById('pdfError').style.display = 'none';
 
     if (pdfDocs[fileKey]) {{
         pdfDoc = pdfDocs[fileKey];
         document.getElementById('pdfLoading').style.display = 'none';
-        pageNum = pageToRender || 1;
+        document.getElementById('totalPages').textContent = '/ ' + pdfDoc.numPages + ' 页';
+        if (savedState) {{
+            highlights = cloneData(savedState.highlights);
+            textNotes = cloneData(savedState.textNotes);
+        }}
+        pageNum = Math.max(1, Math.min(pageToRender || (savedState && savedState.pageNum) || 1, pdfDoc.numPages));
         renderPage(pageNum);
         return;
     }}
@@ -440,7 +557,11 @@ function loadPDF(fileKey, pageToRender) {{
         pdfDoc = doc;
         document.getElementById('totalPages').textContent = '/ ' + doc.numPages + ' 页';
         document.getElementById('pdfLoading').style.display = 'none';
-        pageNum = pageToRender || 1;
+        if (savedState) {{
+            highlights = cloneData(savedState.highlights);
+            textNotes = cloneData(savedState.textNotes);
+        }}
+        pageNum = Math.max(1, Math.min(pageToRender || (savedState && savedState.pageNum) || 1, doc.numPages));
         renderPage(pageNum);
     }}).catch(function(err) {{
         console.error('PDF load error:', err);
@@ -453,12 +574,18 @@ function switchPDF(fileKey) {{
     if (fileKey === currentFile && pdfDoc) return;
     // 保存当前状态
     if (pdfDoc) {{
-        fileStates[currentFile] = {{ pageNum: pageNum, highlights: JSON.parse(JSON.stringify(highlights)) }};
+        fileStates[currentFile] = {{
+            pageNum: pageNum,
+            highlights: cloneData(highlights),
+            textNotes: cloneData(textNotes)
+        }};
+        saveAnnotationStorage();
     }}
     currentFile = fileKey;
     document.getElementById('pdfSelector').value = fileKey;
     var state = fileStates[fileKey];
-    highlights = (state && state.highlights) ? state.highlights : {{}};
+    highlights = state ? cloneData(state.highlights) : {{}};
+    textNotes = state ? cloneData(state.textNotes) : {{}};
     loadPDF(fileKey, state ? state.pageNum : 1);
 }}
 
@@ -474,6 +601,8 @@ function renderPage(num) {{
     pdfDoc.getPage(num).then(function(page) {{
         var viewport = page.getViewport({{ scale: scale }});
         currentScale = viewport.scale;
+        currentPageWidth = viewport.width;
+        currentPageHeight = viewport.height;
         var outputScale = window.devicePixelRatio || 1;
         canvas.width = Math.floor(viewport.width * outputScale);
         canvas.height = Math.floor(viewport.height * outputScale);
@@ -507,6 +636,8 @@ function renderPage(num) {{
         document.getElementById('pageInput').value = num;
         document.getElementById('pdfViewport').scrollTop = 0;
         restoreHighlights(num);
+        restoreTextNotes(num);
+        saveAnnotationStorage();
     }}).catch(function(err) {{
         pageRendering = false;
         console.error('Render error:', err);
@@ -543,6 +674,198 @@ function restoreHighlights(num) {{
             d.style.height = (r.height * sf) + 'px';
             overlay.appendChild(d);
         }});
+    }});
+}}
+
+function restoreTextNotes(num) {{
+    var layer = document.getElementById('annotationLayer');
+    layer.innerHTML = '';
+    activeNoteId = null;
+    var notes = textNotes[num] || [];
+    notes.forEach(function(note) {{
+        layer.appendChild(buildNoteElement(note));
+    }});
+}}
+
+function buildNoteElement(note) {{
+    var noteEl = document.createElement('div');
+    noteEl.className = 'text-note';
+    noteEl.dataset.noteId = note.id;
+    positionNoteElement(noteEl, note);
+
+    var header = document.createElement('div');
+    header.className = 'text-note-header';
+    header.innerHTML = '<span>页内笔记</span>';
+
+    var delBtn = document.createElement('button');
+    delBtn.className = 'text-note-delete';
+    delBtn.type = 'button';
+    delBtn.title = '删除文本框';
+    delBtn.textContent = '×';
+    delBtn.onclick = function(e) {{
+        e.stopPropagation();
+        deleteTextNote(note.id);
+    }};
+    header.appendChild(delBtn);
+
+    var body = document.createElement('textarea');
+    body.className = 'text-note-body';
+    body.placeholder = '输入这一页的补充笔记...';
+    body.value = note.text || '';
+    body.addEventListener('input', function() {{
+        updateTextNote(note.id, {{ text: body.value }});
+    }});
+    body.addEventListener('focus', function() {{
+        setActiveNote(note.id);
+    }});
+
+    var resizer = document.createElement('div');
+    resizer.className = 'text-note-resizer';
+
+    noteEl.appendChild(header);
+    noteEl.appendChild(body);
+    noteEl.appendChild(resizer);
+    noteEl.addEventListener('mousedown', function() {{
+        setActiveNote(note.id);
+    }});
+
+    attachNoteDrag(header, noteEl, note.id);
+    attachNoteResize(resizer, noteEl, note.id);
+    return noteEl;
+}}
+
+function positionNoteElement(noteEl, note) {{
+    noteEl.style.left = (note.left * currentPageWidth) + 'px';
+    noteEl.style.top = (note.top * currentPageHeight) + 'px';
+    noteEl.style.width = Math.max(120, note.width * currentPageWidth) + 'px';
+    noteEl.style.height = Math.max(72, note.height * currentPageHeight) + 'px';
+}}
+
+function getCurrentPageNotes() {{
+    if (!textNotes[pageNum]) textNotes[pageNum] = [];
+    return textNotes[pageNum];
+}}
+
+function getTextNoteById(noteId) {{
+    var notes = getCurrentPageNotes();
+    for (var i = 0; i < notes.length; i++) {{
+        if (notes[i].id === noteId) return notes[i];
+    }}
+    return null;
+}}
+
+function updateTextNote(noteId, patch) {{
+    var note = getTextNoteById(noteId);
+    if (!note) return;
+    Object.assign(note, patch || {{}});
+    saveAnnotationStorage();
+}}
+
+function setActiveNote(noteId) {{
+    activeNoteId = noteId;
+    var nodes = document.querySelectorAll('.text-note');
+    nodes.forEach(function(node) {{
+        node.classList.toggle('selected', node.dataset.noteId === noteId);
+    }});
+}}
+
+function insertTextNote() {{
+    if (!pdfDoc || !currentPageWidth || !currentPageHeight) return;
+    var notes = getCurrentPageNotes();
+    var note = {{
+        id: 'note_' + Date.now() + '_' + notes.length,
+        left: Math.min(0.72, 0.08 + (notes.length % 4) * 0.04),
+        top: Math.min(0.75, 0.08 + (notes.length % 5) * 0.04),
+        width: 0.26,
+        height: 0.16,
+        text: ''
+    }};
+    notes.push(note);
+    restoreTextNotes(pageNum);
+    setActiveNote(note.id);
+    saveAnnotationStorage();
+    setTimeout(function() {{
+        var el = document.querySelector('.text-note[data-note-id="' + note.id + '"] .text-note-body');
+        if (el) el.focus();
+    }}, 0);
+}}
+
+function deleteTextNote(noteId) {{
+    var notes = getCurrentPageNotes().filter(function(note) {{
+        return note.id !== noteId;
+    }});
+    if (notes.length > 0) textNotes[pageNum] = notes;
+    else delete textNotes[pageNum];
+    restoreTextNotes(pageNum);
+    saveAnnotationStorage();
+}}
+
+function attachNoteDrag(handle, noteEl, noteId) {{
+    handle.addEventListener('mousedown', function(e) {{
+        if (e.target.closest('.text-note-delete')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveNote(noteId);
+
+        var note = getTextNoteById(noteId);
+        if (!note) return;
+        var startX = e.clientX;
+        var startY = e.clientY;
+        var startLeft = note.left * currentPageWidth;
+        var startTop = note.top * currentPageHeight;
+        var widthPx = Math.max(120, note.width * currentPageWidth);
+        var heightPx = Math.max(72, note.height * currentPageHeight);
+
+        function onMove(ev) {{
+            var nextLeft = Math.max(0, Math.min(startLeft + ev.clientX - startX, currentPageWidth - widthPx));
+            var nextTop = Math.max(0, Math.min(startTop + ev.clientY - startY, currentPageHeight - heightPx));
+            note.left = nextLeft / currentPageWidth;
+            note.top = nextTop / currentPageHeight;
+            positionNoteElement(noteEl, note);
+        }}
+
+        function onUp() {{
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            saveAnnotationStorage();
+        }}
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    }});
+}}
+
+function attachNoteResize(resizer, noteEl, noteId) {{
+    resizer.addEventListener('mousedown', function(e) {{
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveNote(noteId);
+
+        var note = getTextNoteById(noteId);
+        if (!note) return;
+        var startX = e.clientX;
+        var startY = e.clientY;
+        var startWidth = Math.max(120, note.width * currentPageWidth);
+        var startHeight = Math.max(72, note.height * currentPageHeight);
+        var leftPx = note.left * currentPageWidth;
+        var topPx = note.top * currentPageHeight;
+
+        function onMove(ev) {{
+            var nextWidth = Math.max(120, Math.min(startWidth + ev.clientX - startX, currentPageWidth - leftPx));
+            var nextHeight = Math.max(72, Math.min(startHeight + ev.clientY - startY, currentPageHeight - topPx));
+            note.width = nextWidth / currentPageWidth;
+            note.height = nextHeight / currentPageHeight;
+            positionNoteElement(noteEl, note);
+        }}
+
+        function onUp() {{
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            saveAnnotationStorage();
+        }}
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
     }});
 }}
 
@@ -599,6 +922,7 @@ document.addEventListener('contextmenu', function(e) {{
     }}
 
     restoreHighlights(pageNum);
+    saveAnnotationStorage();
     sel.removeAllRanges();
 }});
 
@@ -610,11 +934,17 @@ function jumpToPage(fileKey, num) {{
 
     if (fileKey && fileKey !== currentFile) {{
         if (pdfDoc) {{
-            fileStates[currentFile] = {{ pageNum: pageNum, highlights: JSON.parse(JSON.stringify(highlights)) }};
+            fileStates[currentFile] = {{
+                pageNum: pageNum,
+                highlights: cloneData(highlights),
+                textNotes: cloneData(textNotes)
+            }};
+            saveAnnotationStorage();
         }}
         currentFile = fileKey;
         document.getElementById('pdfSelector').value = fileKey;
         highlights = {{}};
+        textNotes = {{}};
         loadPDF(fileKey, num);
         return;
     }}
@@ -637,7 +967,7 @@ function updateZoom() {{
 
 // ===== 键盘快捷键 =====
 document.addEventListener('keydown', function(e) {{
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'ArrowLeft') {{ e.preventDefault(); prevPage(); }}
     if (e.key === 'ArrowRight') {{ e.preventDefault(); nextPage(); }}
     if (e.key === '+' || e.key === '=') {{ e.preventDefault(); zoomIn(); }}
@@ -969,6 +1299,7 @@ def main():
         print(f"   浏览器访问: http://localhost:8080/{output_html}")
         print()
         print("   功能：← → 翻页  |  Ctrl+滚轮 缩放  |  下拉切换PDF  |  笔记页码跳转")
+        print("         右键高亮  |  ＋笔记框页内批注  |  本地自动恢复")
         print("   跨文件跳转：笔记中写「讲义三 p42」即可自动切换PDF+跳转")
     else:
         print()

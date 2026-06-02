@@ -1,12 +1,13 @@
 ---
 name: exam-review
-description: "从教材 PDF 或讲义集合生成考点复习笔记，并输出交互式 HTML 复习页面（支持多 PDF、跨文件页码跳转）。适用于任意课程的期末复习。Use when user says: 期末复习、考点整理、生成复习页面、复习笔记HTML、exam review page、PDF复习"
+description: "从教材 PDF 或讲义集合生成考点复习笔记，并输出交互式 HTML 复习页面（支持多 PDF、跨文件页码跳转、PDF页内高亮与文本框笔记）。适用于任意课程的期末复习。Use when user says: 期末复习、考点整理、生成复习页面、复习笔记HTML、exam review page、PDF复习"
 argument-hint: [pdf-path-or-dir]
 allowed-tools: Bash(*), Read, Write, Edit, Grep, Glob, Agent, WebFetch, WebSearch
 ---
 
 # Exam Review: PDF / Lecture Notes → Interactive Review Page
 
+从教材PDF生成考点复习笔记和交互式HTML复习页面。支持**多个PDF同时配置**，笔记中可用 `讲义N p42` 格式实现跨文件页码跳转，并支持在左侧 PDF 上进行页内高亮和文本框笔记。
 把课程教材、讲义或补充阅读整理成：
 - `复习笔记_考点版.md`
 - `复习笔记_考点版.html`
@@ -80,6 +81,24 @@ python3 generate_review_page.py \
 ### Step 6: 启动本地访问
 
 ```bash
+cd WORK_DIR
+python3 generate_review_page.py
+```
+
+生成后的 HTML 默认包含以下 PDF 批注能力：
+- **右键高亮**：选中文本后右键切换荧光笔高亮
+- **文本框笔记**：点击工具栏的 `＋笔记框` 在当前页插入可编辑文本框
+- **拖拽与缩放**：文本框可拖动、可调整大小，并随 PDF 缩放/翻页保持相对位置
+- **本地持久化**：高亮和文本框会保存在浏览器 `localStorage`，刷新后仍可恢复
+
+注意：
+- 这些批注**不会写入原始 PDF 文件**
+- 它们属于网页层叠加笔记；换浏览器、清缓存、换设备后可能丢失
+
+### Step 8: 启动 HTTP 服务器并提示用户
+
+```bash
+cd WORK_DIR
 python3 -m http.server 8080
 ```
 
@@ -97,6 +116,15 @@ http://localhost:8080/复习笔记_考点版.html
 - 能按页码回到原 PDF
 - 能衔接题库生成
 
+用户打开页面后可：
+1. **左侧 PDF 面板**：工具栏下拉框可切换不同PDF，← → 翻页，Ctrl+滚轮缩放
+2. **跨文件跳转**：点击笔记中的 `讲义三 p42` 链接，自动切换到对应PDF并跳转至指定页
+3. **笔记搜索**：右上角搜索框实时高亮笔记内容
+4. **面板拖拽**：中间分隔条可拖拽调整左右面板宽度
+5. **右键高亮**：在PDF文字上选中文本后右键，可添加荧光笔高亮
+6. **页内文本框笔记**：点击 `＋笔记框` 可在当前 PDF 页上添加、编辑、拖拽、缩放文本框
+7. **本地恢复**：刷新页面后，当前浏览器中的高亮和文本框笔记会自动恢复
+
 ## Integration with other skills
 
 - 如果输入是课堂转写，建议先用 `lecture-transcript-review`
@@ -107,3 +135,11 @@ http://localhost:8080/复习笔记_考点版.html
 - 这是一个通用 skill，不应把仓库默认配置写死成某一门课。
 - 课程私有内容更适合放在使用示例或用户自己的工作目录里。
 - 如需题库页，应使用 `--layout standalone`，但那属于 `exam-question-bank` 的工作流。
+
+用户反馈问题后可能需要的修复：
+- **公式渲染问题**：md转html时 `|` 在LaTeX中破坏表格 → 替换为 `\lVert`/`\lvert`
+- **公式渲染问题**：`<` 被解析为HTML标签 → 替换为 `\lt`
+- **缩放敏感度**：调整 `zoomIn/Out` 步长（目前±0.1）
+- **页码映射不准确**：重新验证 offset 值
+- **PDF载入问题**：确认是否使用了 http://localhost:8080 而非 file:// 协议
+- **批注丢失**：确认未清除浏览器本地存储；如需跨设备，后续可加导出/导入批注
