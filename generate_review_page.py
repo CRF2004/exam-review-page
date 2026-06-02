@@ -22,21 +22,21 @@ import urllib.parse
 # label：左侧工具栏下拉框中显示的名称
 
 PDF_FILES = {
-    "教材":  {"file": "动手学深度学习-PyTorch(第二版) (Aston Zhang, Zachary C. Lipton, 李沐 etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf", "offset": 18, "label": "教材：《动手学深度学习》"},
-    # 按实际 PDF 编辑：
-    #   key     — 笔记中跨文件引用的标识，如 `讲义三 p42`
-    #   file    — PDF 文件名（与脚本同目录，或相对路径）
-    #   offset  — 印刷页码 → PDF 页码偏移量
-    #   label   — 工具栏下拉框显示名称
+    "default": {"file": "materials/course-material.pdf", "offset": 0, "label": "默认资料"},
+    # 按实际课程材料编辑：
+    #   key     — 笔记里引用时使用的标识，如 `讲义二 p42`
+    #   file    — PDF 文件相对路径
+    #   offset  — 印刷页码 → PDF 页码偏移量（建议优先保持 0）
+    #   label   — 页面下拉框显示名称
 }
 
 # 默认打开的 PDF 标识（必须是 PDF_FILES 中的某个 key）
-DEFAULT_PDF_KEY = "教材"
+DEFAULT_PDF_KEY = "default"
 
 # 输入/输出文件名
 INPUT_MD = "复习笔记_考点版.md"
 OUTPUT_HTML = "复习笔记_考点版.html"
-PAGE_TITLE = "考点笔记"
+PAGE_TITLE = "复习笔记"
 PAGE_LAYOUT = "split"
 
 # ============================================================
@@ -115,7 +115,7 @@ def add_page_links(text, pdf_files, default_key):
         return (f'<a href="javascript:void(0)" '
                 f'onclick="jumpToPage(\'{default_key}\', {pdf_num})" '
                 f'class="page-link" '
-                f'title="教材第{num}页 → PDF 第{pdf_num}页">'
+                f'title="{pdf_files[default_key]["label"]} 第{num}页 → PDF 第{pdf_num}页">'
                 f'p{num}</a>')
     text = re.sub(r'(?<![\u4e00-\u9fff])p(\d+)(?!\d*["\'<>])', replace_single, text)
     return text
@@ -794,7 +794,7 @@ def build_standalone_html(html_body, page_title):
 <script>
 function isAnswerStart(el) {{
     if (!el) return false;
-    var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    var text = (el.textContent || '').replace(/\\s+/g, ' ').trim();
     return text.startsWith('答案：') || text.startsWith('答案要点：') || text.startsWith('参考答案：');
 }}
 
