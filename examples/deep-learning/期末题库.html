@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; background: #f5f7fb; color: #333; }
+  .page { max-width: 1000px; margin: 0 auto; min-height: 100vh; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+  .header { position: sticky; top: 0; z-index: 10; background: #2c3e50; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .header-title { font-size: 18px; font-weight: 700; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .header input { padding: 6px 10px; border: 1px solid #555; border-radius: 4px; background: #1a1a1a; color: #fff; width: 180px; font-size: 13px; }
+  .header button { background: #3498db; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .header button:hover { background: #2980b9; }
+  .content { padding: 24px 28px 48px; font-size: 15px; line-height: 1.8; }
+  .content h1 { font-size: 28px; margin: 0 0 14px; color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 8px; }
+  .content h2 { font-size: 22px; margin: 28px 0 12px; color: #e74c3c; border-bottom: 1px solid #e74c3c; padding-bottom: 6px; }
+  .content h3 { font-size: 18px; margin: 20px 0 10px; color: #2980b9; background: #eaf2f8; padding: 8px 12px; border-radius: 6px; }
+  .content p, .content li { margin: 6px 0; }
+  .content ul, .content ol { padding-left: 22px; margin: 8px 0; }
+  .content blockquote { border-left: 4px solid #2c3e50; margin: 12px 0; padding: 10px 14px; background: #f0f4f8; color: #555; }
+  .content code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #c0392b; font-family: 'Consolas', monospace; }
+  .content pre { background: #1f2430; color: #e6edf3; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0 16px; }
+  .content pre code { background: transparent; color: inherit; padding: 0; }
+  .content table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; border: 1px solid #ddd; }
+  .content th, .content td { border: 1px solid #ddd; padding: 8px 10px; vertical-align: top; }
+  .content th { background: #34495e; color: #fff; white-space: nowrap; }
+  .content tr:nth-child(even) { background: #f8f9fa; }
+  .answer-block { margin: 10px 0 18px; border: 1px solid #d7e3f1; border-radius: 8px; background: #f8fbff; overflow: hidden; }
+  .answer-block summary { list-style: none; cursor: pointer; padding: 10px 14px; font-weight: 600; color: #1f5f99; background: #eef6ff; user-select: none; }
+  .answer-block summary::-webkit-details-marker { display: none; }
+  .answer-block summary::before { content: '▶ '; }
+  .answer-block[open] summary::before { content: '▼ '; }
+  .answer-content { padding: 2px 14px 14px; }
+  .answer-content > :first-child { margin-top: 8px; }
+  .highlight-match { background: #ffff99; padding: 0 2px; }
+  @media (max-width: 700px) {
+    .header { flex-direction: column; align-items: stretch; }
+    .header-actions { width: 100%; }
+    .header input { width: 100%; flex: 1; }
+    .content { padding: 18px 16px 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="header-title">📝 深度学习期末题库</div>
+    <div class="header-actions">
+      <input type="text" id="searchInput" placeholder="搜索题目/答案..." onkeyup="if(event.key==='Enter')doSearch()">
+      <button onclick="doSearch()">搜索</button>
+      <button onclick="clearSearch()">清空</button>
+    </div>
+  </div>
+  <div class="content" id="noteContent">
+<h1>深度学习期末题库（全覆盖结构化版）</h1>
+<blockquote>
+<p>目标：<strong>知识点全覆盖 + 考法全覆盖</strong></p>
+<p>结构：先给“考点-考法总览”，再按考点组织题目；每个考点尽量覆盖选择 / 填空 / 简答 / 计算 / 代码阅读 / 场景综合中的若干种。</p>
+<p>范围依据：<code>复习笔记_考点版.md</code></p>
+<p>使用建议：
+1. 先看“考点-考法总览”，确认哪些考点容易以什么形式出题。
+2. 做题时先只看题干，不展开答案。
+3. 综合题重点训练：<strong>读代码、看结果、做判断、提方案、做必要计算</strong>。</p>
+</blockquote>
+<hr />
+<h2>一、考点-考法总览</h2>
+<table>
+<thead>
+<tr>
+<th>考点</th>
+<th>高频考法</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>考点1 线性回归</td>
+<td>选择、填空、推导、代码</td>
+<td>解析解、MSE、SGD常考</td>
+</tr>
+<tr>
+<td>考点2 Softmax回归</td>
+<td>选择、填空、推导、代码</td>
+<td><code>\hat{y}-y</code> 必考</td>
+</tr>
+<tr>
+<td>考点3 MLP与激活函数</td>
+<td>选择、简答、代码</td>
+<td>ReLU/Sigmoid/Tanh 对比</td>
+</tr>
+<tr>
+<td>考点4 模型选择/过拟合欠拟合</td>
+<td>选择、简答、综合分析</td>
+<td>看曲线判断很常见</td>
+</tr>
+<tr>
+<td>考点5 权重衰退</td>
+<td>选择、填空、推导、综合</td>
+<td>更新公式和作用</td>
+</tr>
+<tr>
+<td>考点6 Dropout</td>
+<td>选择、简答、综合</td>
+<td>训练/测试区别</td>
+</tr>
+<tr>
+<td>考点7 数值稳定性/初始化</td>
+<td>选择、简答、综合分析</td>
+<td>Xavier/He、梯度问题</td>
+</tr>
+<tr>
+<td>考点8 LeNet/卷积基础</td>
+<td>选择、计算、代码、综合</td>
+<td>输出尺寸、参数共享</td>
+</tr>
+<tr>
+<td>考点9 AlexNet</td>
+<td>选择、简答</td>
+<td>与 LeNet 对比</td>
+</tr>
+<tr>
+<td>考点10 VGG</td>
+<td>选择、简答、计算</td>
+<td>小卷积核堆叠</td>
+</tr>
+<tr>
+<td>考点11 NiN</td>
+<td>选择、简答</td>
+<td>1×1 卷积、全局平均池化</td>
+</tr>
+<tr>
+<td>考点12 GoogLeNet</td>
+<td>选择、简答、结构分析</td>
+<td>Inception + bottleneck</td>
+</tr>
+<tr>
+<td>考点13 ResNet</td>
+<td>选择、简答、综合分析</td>
+<td>残差连接、退化问题</td>
+</tr>
+<tr>
+<td>考点14 RNN</td>
+<td>填空、简答、代码、综合</td>
+<td>BPTT、困惑度、梯度裁剪</td>
+</tr>
+<tr>
+<td>考点15 GRU</td>
+<td>填空、简答、公式对比</td>
+<td>门控作用</td>
+</tr>
+<tr>
+<td>考点16 LSTM</td>
+<td>填空、简答、公式手写、代码阅读</td>
+<td>三门一记忆带</td>
+</tr>
+<tr>
+<td>考点17 深层/双向RNN</td>
+<td>选择、简答</td>
+<td>双向RNN不能做LM</td>
+</tr>
+<tr>
+<td>考点18 Seq2Seq</td>
+<td>选择、简答、综合</td>
+<td>Teacher Forcing、Beam Search</td>
+</tr>
+<tr>
+<td>考点19 语言模型</td>
+<td>选择、填空、概念解释</td>
+<td>n-gram、特殊标记</td>
+</tr>
+<tr>
+<td>考点20 注意力机制基础</td>
+<td>选择、填空、计算、简答</td>
+<td>QKV、多头、缩放点积</td>
+</tr>
+<tr>
+<td>考点21 Seq2Seq+Attention</td>
+<td>简答、综合分析</td>
+<td>信息瓶颈</td>
+</tr>
+<tr>
+<td>考点22 Transformer</td>
+<td>选择、简答、结构图、代码阅读、综合</td>
+<td>编码器/解码器/LN/掩蔽</td>
+</tr>
+<tr>
+<td>考点23 BERT</td>
+<td>选择、填空、简答、综合</td>
+<td>MLM/NSP、输入表示</td>
+</tr>
+<tr>
+<td>考点24 图片增广</td>
+<td>选择、简答、应用判断、综合分析</td>
+<td>训练/测试区别</td>
+</tr>
+<tr>
+<td>考点25 微调</td>
+<td>简答、代码、综合方案</td>
+<td>分层学习率</td>
+</tr>
+<tr>
+<td>考点26 物体检测</td>
+<td>选择、简答、综合比较</td>
+<td>IoU/NMS/R-CNN系/YOLO</td>
+</tr>
+<tr>
+<td>考点27 语义分割/FCN</td>
+<td>选择、简答、综合</td>
+<td>转置卷积、像素级分类</td>
+</tr>
+<tr>
+<td>考点28 样式迁移</td>
+<td>选择、简答、综合分析</td>
+<td>内容损失/风格损失</td>
+</tr>
+<tr>
+<td>考点29 机器翻译</td>
+<td>选择、简答、综合</td>
+<td>Seq2Seq+Attention</td>
+</tr>
+<tr>
+<td>考点30 自然语言推理</td>
+<td>选择、应用判断、简答</td>
+<td>蕴含/矛盾/中性</td>
+</tr>
+<tr>
+<td>考点31 BERT微调应用</td>
+<td>简答、代码阅读、方案设计、应用对比</td>
+<td>分类/文本对/序列标注</td>
+</tr>
+<tr>
+<td>考点32 CPU/GPU/ASIC</td>
+<td>选择、简答、应用分析</td>
+<td>并行特性</td>
+</tr>
+<tr>
+<td>考点33 多GPU/分布式</td>
+<td>选择、简答、综合分析</td>
+<td>数据并行与通信瓶颈</td>
+</tr>
+<tr>
+<td>考点34 房价预测</td>
+<td>综合、代码、流程题</td>
+<td>特征工程/K折/集成</td>
+</tr>
+<tr>
+<td>考点35 图片分类</td>
+<td>综合、代码、方案题</td>
+<td>数据增广+微调</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>二、按考点题库</h2>
+<h2>第一部分：深度学习基础</h2>
+<h3>考点1：线性回归</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 填空 / 简答 / 代码</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>关于线性回归，以下说法正确的是（ ）
+A. 线性回归只能处理分类问题<br />
+B. 模型输出通常写成 (\hat{y}=Xw+b)<br />
+C. 线性回归不能使用梯度下降训练<br />
+D. MSE 越大表示拟合越好</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §3.1-§3.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 103)" class="page-link" title="教材第85页 → PDF 第103页">p85</a>-104</li>
+</ul>
+<h4>题2【填空】</h4>
+<p>在线性回归中，均方损失常写成：(L=\underline{\hspace{4cm}})。</p>
+<ul>
+<li><strong>答案：</strong> (\frac{1}{2n}\sum (\hat{y}-y)^2)</li>
+<li><strong>对应教材：</strong> §3.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 103)" class="page-link" title="教材第85页 → PDF 第103页">p85</a>-95</li>
+</ul>
+<h4>题3【简答】</h4>
+<p>为什么在线性回归的均方损失前面常写 (\frac12)？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>主要是为了求导时消掉平方项带来的系数 2。</li>
+<li>不改变最优解位置，只是让公式更简洁。</li>
+<li>便于后续推导梯度和更新公式。</li>
+<li><strong>对应教材：</strong> §3.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 103)" class="page-link" title="教材第85页 → PDF 第103页">p85</a>-95</li>
+</ul>
+<h4>题4【代码】</h4>
+<p>请写出一个最简单的 PyTorch 线性回归训练流程骨架，要求包含模型、损失函数、优化器和训练循环。</p>
+<ul>
+<li><strong>参考答案：</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
+<span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MSELoss</span><span class="p">()</span>
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.03</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</code></pre></div>
+
+<ul>
+<li><strong>对应教材：</strong> §3.2-§3.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 113)" class="page-link" title="教材第95页 → PDF 第113页">p95</a>-104</li>
+</ul>
+<h4>题5【教材练习】</h4>
+<p>线性回归存在解析解。如何证明最优 (w) 满足正规方程 ((X^TX)w = X^Ty)？当 (X^TX) 不可逆时应如何处理？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 114)" class="page-link" title="教材第96页 → PDF 第114页">p96</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>对损失 (L=|Xw-y|^2) 求梯度并令其为零：(\nabla_w L = 2X^T(Xw-y) = 0)，整理得正规方程。</li>
+<li>当 (X^TX) 不可逆（如特征相关或样本数 &lt; 特征数）时，可加正则项 (\lambda I) 使其可逆（即岭回归/L2正则），或用伪逆。</li>
+</ul>
+<h4>题6【教材练习】</h4>
+<p>为什么使用小批量随机梯度下降（Mini-batch SGD）而非整体梯度下降（GD）？各自的收敛性有何不同？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 114)" class="page-link" title="教材第96页 → PDF 第114页">p96</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>GD 每步用全量数据，计算准确但开销大；SGD 每步用单样本，噪声大但快；Mini-batch 在两者间折中。</li>
+<li>Mini-batch SGD 引入的随机性有助于跳出局部极小，在实践中收敛效果往往比整体 GD 更好。</li>
+<li>并行计算更高效：GPU 能同时处理一个批量，单样本无法充分利用并行硬件。</li>
+</ul>
+<hr />
+<h3>考点2：Softmax回归</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 填空 / 推导 / 代码</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>Softmax 回归中，交叉熵损失主要关注的是（ ）
+A. 所有类别概率的平均值<br />
+B. 正确类别对应的预测概率<br />
+C. 输出层权重的平方和<br />
+D. 所有类别概率的乘积</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §3.4-§3.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 123)" class="page-link" title="教材第105页 → PDF 第123页">p105</a>-126</li>
+</ul>
+<h4>题2【填空】</h4>
+<p>若真实类别为 (c)，则交叉熵损失写作 (L=\underline{\hspace{3cm}})。</p>
+<ul>
+<li><strong>答案：</strong> (-\log \hat{y}_c)</li>
+<li><strong>对应教材：</strong> §3.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 123)" class="page-link" title="教材第105页 → PDF 第123页">p105</a>-111</li>
+</ul>
+<h4>题3【推导】</h4>
+<p>说明为什么 Softmax + 交叉熵联合求导后，输出层梯度可写成“预测减真实”。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>将真实标签表示为 one-hot 向量 (y)。</li>
+<li>Softmax 输出为 (\hat{y})，交叉熵为 (-\sum y_j \log \hat{y}_j)。</li>
+<li>联合求导后可化简为 (\frac{\partial L}{\partial o}=\hat{y}-y)。</li>
+<li>正确类项为 (\hat{y}_c-1)，其余类为 (\hat{y}_j)。</li>
+<li><strong>对应教材：</strong> §3.4-§3.5 <a href="javascript:void(0)" onclick="jumpToPage('教材', 123)" class="page-link" title="教材第105页 → PDF 第123页">p105</a>-114</li>
+</ul>
+<h4>题4【代码阅读】</h4>
+<p><code>nn.CrossEntropyLoss()</code> 在 PyTorch 中本质上等价于什么组合？</p>
+<ul>
+<li><strong>答案：</strong> <code>LogSoftmax + NLLLoss</code></li>
+<li><strong>对应教材：</strong> §3.6-§3.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 133)" class="page-link" title="教材第115页 → PDF 第133页">p115</a>-126</li>
+</ul>
+<h4>题5【教材练习】</h4>
+<p>Softmax 的输入为 logits (o)，输出为概率 (\hat{y})。为什么直接最小化交叉熵 (-\log\hat{y}_c) 等价于最大化正确类的预测概率？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 142)" class="page-link" title="教材第124页 → PDF 第142页">p124</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>(\hat{y}_c = \frac{\exp(o_c)}{\sum_j \exp(o_j)})，最大化 (\hat{y}_c) 等价于最小化 (-\log\hat{y}_c)。</li>
+<li>交叉熵 (H(y,\hat{y}) = -\sum_j y_j\log\hat{y}_j)，当 (y) 为 one-hot 时只有正确类项非零。</li>
+<li>因此最小化交叉熵就是最大化正确类预测概率的对数，两者等价。</li>
+</ul>
+<h4>题6【教材练习】</h4>
+<p>如果样本 (x) 中有若干特征的值始终为 0，从数值稳定性和泛化的角度看，这对模型有什么影响？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 146)" class="page-link" title="教材第128页 → PDF 第146页">p128</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>全零特征对模型输出无贡献，对应权重无法从数据中学到有用信息，本质上是冗余特征。</li>
+<li>从优化角度：该权重的梯度始终为 0，初始化后不会更新。</li>
+<li>建议：在数据预处理阶段删除全零列或进行归一化/标准化处理。</li>
+</ul>
+<hr />
+<h3>考点3：多层感知机 &amp; 激活函数</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 代码</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>关于激活函数，以下正确的是（ ）
+A. 没有激活函数的多层感知机仍有强非线性表达能力<br />
+B. ReLU 输出范围是 [-1,1]<br />
+C. 激活函数用于引入非线性<br />
+D. Tanh 不会饱和</p>
+<ul>
+<li><strong>答案：</strong> C</li>
+<li><strong>对应教材：</strong> §4.1-§4.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 145)" class="page-link" title="教材第127页 → PDF 第145页">p127</a>-138</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>比较 ReLU、Sigmoid、Tanh 三种激活函数的特点与缺点。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>ReLU：计算简单，正区间梯度稳定，深层网络常用。</li>
+<li>Sigmoid：输出在 [0,1]，但两端易饱和，深层时易梯度消失。</li>
+<li>Tanh：输出在 [-1,1]，中心对称，通常优于 Sigmoid，但仍有饱和问题。</li>
+<li>默认常选 ReLU。</li>
+<li><strong>对应教材：</strong> §4.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 145)" class="page-link" title="教材第127页 → PDF 第145页">p127</a>-133</li>
+</ul>
+<h4>题3【代码】</h4>
+<p>写出一个输入 784 维、隐藏层 256、输出 10 类的最简单 MLP。</p>
+<ul>
+<li><strong>参考答案：</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">784</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<ul>
+<li><strong>对应教材：</strong> §4.2-§4.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 152)" class="page-link" title="教材第134页 → PDF 第152页">p134</a>-138</li>
+</ul>
+<hr />
+<h3>考点4：模型选择、过拟合与欠拟合</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>若训练误差很低而验证误差较高，则模型通常处于（ ）
+A. 欠拟合<br />
+B. 过拟合<br />
+C. 梯度爆炸<br />
+D. 标签偏移</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §4.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 157)" class="page-link" title="教材第139页 → PDF 第157页">p139</a>-149</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>如何区分过拟合与欠拟合？对应改进策略分别是什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>过拟合：训练误差低、验证误差高。</li>
+<li>欠拟合：训练误差和验证误差都高。</li>
+<li>过拟合可通过正则化、数据增广、降低模型复杂度、早停等缓解。</li>
+<li>欠拟合可通过增大模型复杂度、减弱正则化、训练更充分等缓解。</li>
+<li><strong>对应教材：</strong> §4.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 157)" class="page-link" title="教材第139页 → PDF 第157页">p139</a>-149</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>某图像分类模型训练 30 个 epoch 后，训练准确率达到 99%，验证准确率稳定在 81%-83%，并且继续训练后验证集效果不再提升。
+1. 判断模型主要问题。<br />
+2. 给出至少 4 条改进策略。<br />
+3. 指出其中哪两条最可能直接作用于泛化能力。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>主要问题是过拟合。</li>
+<li>可用权重衰退、Dropout、数据增广、减小模型复杂度、早停、增加训练数据、交叉验证调参。</li>
+<li>更直接作用于泛化的通常是正则化和数据增广。</li>
+<li><strong>对应教材：</strong> §4.4-§4.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 157)" class="page-link" title="教材第139页 → PDF 第157页">p139</a>-161</li>
+</ul>
+<hr />
+<h3>考点5：权重衰退</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 填空 / 推导 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>权重衰退通常对应在损失函数中加入（ ）
+A. L0 项<br />
+B. L2 正则项<br />
+C. Dropout 项<br />
+D. Softmax 项</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §4.5 <a href="javascript:void(0)" onclick="jumpToPage('教材', 167)" class="page-link" title="教材第149页 → PDF 第167页">p149</a>-155</li>
+</ul>
+<h4>题2【填空】</h4>
+<p>加入 L2 正则后，损失函数可写成：(L+\underline{\hspace{3cm}})。</p>
+<ul>
+<li><strong>答案：</strong> (\frac{\lambda}{2}|w|^2)</li>
+<li><strong>对应教材：</strong> §4.5 <a href="javascript:void(0)" onclick="jumpToPage('教材', 167)" class="page-link" title="教材第149页 → PDF 第167页">p149</a>-155</li>
+</ul>
+<h4>题3【推导】</h4>
+<p>写出加入 L2 正则后的梯度下降更新式，并解释为什么它能抑制过拟合。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>更新式：(w \leftarrow w-\eta(\partial L/\partial w + \lambda w))。</li>
+<li>相当于每次更新都额外把权重往 0 拉一小步。</li>
+<li>抑制过大的参数，降低模型对噪声的敏感性。</li>
+<li>因此有助于提升泛化能力。</li>
+<li><strong>对应教材：</strong> §4.5 <a href="javascript:void(0)" onclick="jumpToPage('教材', 167)" class="page-link" title="教材第149页 → PDF 第167页">p149</a>-155</li>
+</ul>
+<h4>题4【教材练习】</h4>
+<p>L2正则化（权重衰退）的参数 (\lambda) 增大后，训练误差和测试误差会分别如何变化？有没有一个"最优" (\lambda)？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 171)" class="page-link" title="教材第153页 → PDF 第171页">p153</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>训练误差通常随 (\lambda) 增大而上升（约束更强，模型欠拟合）。</li>
+<li>测试误差先下降后上升，存在一个最优值使泛化能力最强。</li>
+<li>超参数 (\lambda) 应通过交叉验证（如K折）在验证集上选取，不能直接用训练集。</li>
+</ul>
+<hr />
+<h3>考点6：Dropout</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>Dropout 在测试阶段的做法通常是（ ）
+A. 继续随机丢弃神经元<br />
+B. 关闭所有神经元<br />
+C. 使用完整网络并保持输出期望一致<br />
+D. 只保留最大响应单元</p>
+<ul>
+<li><strong>答案：</strong> C</li>
+<li><strong>对应教材：</strong> §4.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 174)" class="page-link" title="教材第156页 → PDF 第174页">p156</a>-161</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>说明 Dropout 在训练和测试阶段的区别。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>训练时随机丢弃部分神经元，降低共适应。</li>
+<li>测试时使用完整网络。</li>
+<li>需要保持训练和推理时输出期望一致。</li>
+<li>Dropout 本质上是一种正则化方法。</li>
+<li><strong>对应教材：</strong> §4.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 174)" class="page-link" title="教材第156页 → PDF 第174页">p156</a>-161</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>某 MLP 在小数据集上训练时，训练集效果很好，但验证集波动较大。你尝试加入 Dropout 后，训练准确率下降、验证准确率上升。
+1. 这个现象是否合理？<br />
+2. 说明原因。<br />
+3. Dropout 是否越大越好？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>合理。</li>
+<li>Dropout 提高了训练难度，训练精度下降是正常现象，但能缓解过拟合。</li>
+<li>过大反而会导致欠拟合，需结合任务调节。</li>
+<li><strong>对应教材：</strong> §4.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 174)" class="page-link" title="教材第156页 → PDF 第174页">p156</a>-161</li>
+</ul>
+<hr />
+<h3>考点7：数值稳定性 &amp; 模型初始化</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>更适合 ReLU 网络的初始化方法是（ ）
+A. Xavier 初始化<br />
+B. He 初始化<br />
+C. 零初始化<br />
+D. 全 1 初始化</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §4.7-§4.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 180)" class="page-link" title="教材第162页 → PDF 第180页">p162</a>-169</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>深层网络为什么会出现梯度消失或梯度爆炸？如何缓解？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>反向传播是链式求导，多层导数连乘可能使梯度迅速缩小或放大。</li>
+<li>Sigmoid/Tanh 等饱和激活更容易导致梯度消失。</li>
+<li>可通过合理初始化、ReLU、归一化、残差连接、梯度裁剪等缓解。</li>
+<li><strong>对应教材：</strong> §4.7-§4.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 180)" class="page-link" title="教材第162页 → PDF 第180页">p162</a>-169</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>某深层前馈网络使用 Sigmoid 激活，训练时发现前几层参数几乎不更新，loss 长时间不下降。
+1. 判断主要问题。<br />
+2. 从激活函数、初始化、结构三个角度分别给出改进方案。<br />
+3. 如果把初始化全部设为 0，会不会更稳定？为什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>主要是梯度消失。</li>
+<li>激活函数可改 ReLU；初始化可用 Xavier/He；结构上可加 BN/LN 或残差连接。</li>
+<li>全 0 初始化不可取，会导致对称性问题，神经元学到相同表示。</li>
+<li><strong>对应教材：</strong> §4.7-§4.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 180)" class="page-link" title="教材第162页 → PDF 第180页">p162</a>-169</li>
+</ul>
+<h4>题4【教材练习】</h4>
+<p>为什么全零初始化在多层神经网络中是有害的？如何用 Xavier 初始化克服这一问题？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 185)" class="page-link" title="教材第167页 → PDF 第185页">p167</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>全零初始化：所有神经元梯度相同，每次更新权重完全一致，相当于"隐藏层退化为单个神经元"（对称性破坏失败）。</li>
+<li>Xavier 初始化：从 (U(-\sqrt{6/(n_{in}+n_{out})}, +\sqrt{6/(n_{in}+n_{out})})) 或对应正态分布中采样，使各层的输入/输出方差近似相等，缓解梯度消失/爆炸。</li>
+<li>He 初始化：针对 ReLU，方差 (\frac{2}{n_{in}})，适用于深层 ReLU 网络。</li>
+</ul>
+<hr />
+<h2>第二部分：卷积神经网络（CNN）</h2>
+<h3>考点8：LeNet（含卷积基础）</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 计算 / 代码 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>卷积神经网络参数共享的主要好处是（ ）
+A. 提高输入维度<br />
+B. 降低参数量<br />
+C. 去除非线性<br />
+D. 让网络只能处理固定大小图像</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §6.1-§6.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 235)" class="page-link" title="教材第217页 → PDF 第235页">p217</a>-245</li>
+</ul>
+<h4>题2【计算】</h4>
+<p>输入大小为 (32\times 32)，卷积核大小 (5\times 5)，步幅 (S=1)，填充 (P=2)。
+1. 输出空间尺寸是多少？<br />
+2. 若输出通道数为 6，则输出张量形状是什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>(O=(W-K+2P)/S+1=(32-5+4)/1+1=32)。</li>
+<li>输出空间尺寸为 (32\times32)。</li>
+<li>输出张量为 (6\times32\times32)。</li>
+<li><strong>对应教材：</strong> §6.2-§6.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 239)" class="page-link" title="教材第221页 → PDF 第239页">p221</a>-239</li>
+</ul>
+<h4>题3【代码】</h4>
+<p>写出 LeNet 风格网络的核心结构。</p>
+<ul>
+<li><strong>参考答案：</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">(),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">(),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">AvgPool2d</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Flatten</span><span class="p">(),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">16</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">120</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">(),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">120</span><span class="p">,</span> <span class="mi">84</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Sigmoid</span><span class="p">(),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">84</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<ul>
+<li><strong>对应教材：</strong> §6.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 261)" class="page-link" title="教材第243页 → PDF 第261页">p243</a>-245</li>
+</ul>
+<h4>题4【综合】</h4>
+<p>阅读下面的卷积层输出尺寸计算过程，并指出错误：</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 输入: 28x28, kernel=3, stride=1, padding=1</span>
+<span class="n">out</span> <span class="o">=</span> <span class="p">(</span><span class="mi">28</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+</code></pre></div>
+
+<ol>
+<li>这段计算缺了什么？  </li>
+<li>正确输出尺寸是多少？  </li>
+<li>
+<p>为什么卷积层输出尺寸计算题容易出错？</p>
+</li>
+<li>
+<p><strong>答案要点：</strong></p>
+</li>
+<li>缺少填充项 <code>+ 2P</code>。</li>
+<li>应为 ((28-3+2\times1)/1+1=28)。</li>
+<li>常错在忘记 padding、stride，或把公式写成只适用于无填充情形。</li>
+<li><strong>对应教材：</strong> §6.2-§6.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 239)" class="page-link" title="教材第221页 → PDF 第239页">p221</a>-239</li>
+</ol>
+<hr />
+<h3>考点9：AlexNet</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合分析</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>AlexNet 相比 LeNet 的关键改进不包括（ ）
+A. 使用 ReLU<br />
+B. 使用 Dropout<br />
+C. 使用数据增强<br />
+D. 使用注意力机制</p>
+<ul>
+<li><strong>答案：</strong> D</li>
+<li><strong>对应教材：</strong> §7.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 266)" class="page-link" title="教材第248页 → PDF 第266页">p248</a>-255</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>AlexNet 对深度学习重新流行的意义体现在哪些方面？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>在 ImageNet 任务上显著优于传统方法。</li>
+<li>证明更深的 CNN 在大规模视觉任务上的有效性。</li>
+<li>推动 ReLU、Dropout、数据增强和 GPU 训练成为主流。</li>
+<li><strong>对应教材：</strong> §7.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 266)" class="page-link" title="教材第248页 → PDF 第266页">p248</a>-255</li>
+</ul>
+<h4>题3【综合分析】</h4>
+<p>为什么说 AlexNet 不是“单纯把 LeNet 变深”这么简单？请至少从激活函数、正则化、数据处理、硬件支持四个角度说明。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>不只是层数增加，还系统性引入了 ReLU、Dropout、数据增广和 GPU 训练。</li>
+<li>ReLU 改善了优化效率。</li>
+<li>Dropout 和数据增广缓解了过拟合。</li>
+<li>GPU 让更大模型在大数据集上可训练。</li>
+<li><strong>对应教材：</strong> §7.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 266)" class="page-link" title="教材第248页 → PDF 第266页">p248</a>-255</li>
+</ul>
+<hr />
+<h3>考点10：VGG</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 计算</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>VGG 的核心设计思想是（ ）
+A. 大量使用 7×7 卷积核<br />
+B. 堆叠多个小卷积核<br />
+C. 用循环结构代替卷积<br />
+D. 用注意力完全替代卷积</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §7.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 273)" class="page-link" title="教材第255页 → PDF 第273页">p255</a>-258</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>为什么说两个 3×3 卷积可以替代一个 5×5 卷积？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>感受野接近 5×5。</li>
+<li>参数量更少。</li>
+<li>多一层非线性表达能力更强。</li>
+<li><strong>对应教材：</strong> §7.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 273)" class="page-link" title="教材第255页 → PDF 第273页">p255</a>-258</li>
+</ul>
+<h4>题3【计算】</h4>
+<p>若输入输出通道数都记为 64，不考虑偏置：
+1. 一个 5×5 卷积层的参数量是多少？<br />
+2. 两个连续 3×3 卷积层的参数量是多少？<br />
+3. 哪种更多？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>一个 5×5 卷积参数量：(5\times5\times64\times64=102400)。</li>
+<li>两个 3×3 卷积参数量：(2\times3\times3\times64\times64=73728)。</li>
+<li>两个 3×3 更少。</li>
+<li><strong>对应教材：</strong> §7.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 273)" class="page-link" title="教材第255页 → PDF 第273页">p255</a>-258</li>
+</ul>
+<hr />
+<h3>考点11：NiN</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合分析</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>NiN 的重要创新是（ ）
+A. 使用双向 RNN<br />
+B. 在卷积中使用 1×1 卷积形成 MLPConv<br />
+C. 首次使用残差连接<br />
+D. 使用 Beam Search</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §7.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 277)" class="page-link" title="教材第259页 → PDF 第277页">p259</a>-262</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>NiN 为什么倾向于使用全局平均池化代替全连接层？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>可显著减少参数量。</li>
+<li>减轻过拟合。</li>
+<li>与卷积特征图更自然衔接。</li>
+<li><strong>对应教材：</strong> §7.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 277)" class="page-link" title="教材第259页 → PDF 第277页">p259</a>-262</li>
+</ul>
+<h4>题3【综合分析】</h4>
+<p>如果一个模型把卷积特征图展平后接大规模全连接层，参数量非常大。请说明 NiN 的两项设计如何针对这个问题做改进。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>1×1 卷积可在通道维上做更强非线性变换。</li>
+<li>全局平均池化可直接把空间特征汇总为类别响应。</li>
+<li>两者都能减少对大规模全连接层的依赖。</li>
+<li><strong>对应教材：</strong> §7.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 277)" class="page-link" title="教材第259页 → PDF 第277页">p259</a>-262</li>
+</ul>
+<hr />
+<h3>考点12：GoogLeNet</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 结构分析 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>Inception 块的主要思想是（ ）
+A. 只使用 1×1 卷积<br />
+B. 多种尺度并行提取特征<br />
+C. 删除池化层<br />
+D. 使用循环门控</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §7.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 281)" class="page-link" title="教材第263页 → PDF 第281页">p263</a>-267</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>GoogLeNet 中 1×1 卷积通常扮演什么角色？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>作为 bottleneck 先降维。</li>
+<li>减少后续 3×3、5×5 卷积的计算量。</li>
+<li>同时也能引入额外非线性。</li>
+<li><strong>对应教材：</strong> §7.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 281)" class="page-link" title="教材第263页 → PDF 第281页">p263</a>-267</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>为什么 Inception 块要并行使用 1×1、3×3、5×5 卷积和池化分支，而不是只固定一种卷积核？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>不同卷积核对应不同感受野。</li>
+<li>并行结构可同时提取多尺度特征。</li>
+<li>更适合图像中目标大小变化较大的场景。</li>
+<li><strong>对应教材：</strong> §7.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 281)" class="page-link" title="教材第263页 → PDF 第281页">p263</a>-267</li>
+</ul>
+<hr />
+<h3>考点13：ResNet</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>ResNet 的核心思想是（ ）
+A. 使用更大卷积核<br />
+B. 引入残差连接<br />
+C. 去掉激活函数<br />
+D. 只保留全连接层</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §7.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 293)" class="page-link" title="教材第275页 → PDF 第293页">p275</a>-288</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>为什么 ResNet 能训练更深的网络？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>更深网络会出现退化问题。</li>
+<li>残差连接提供恒等映射通路。</li>
+<li>学习残差通常比直接学习目标映射更容易。</li>
+<li>梯度能沿跳连路径更顺畅传播。</li>
+<li><strong>对应教材：</strong> §7.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 293)" class="page-link" title="教材第275页 → PDF 第293页">p275</a>-288</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>某同学把一个 18 层 CNN 盲目加深到 56 层，结果训练误差和验证误差都比原来更高。
+1. 这更像过拟合还是退化问题？<br />
+2. 为什么不能简单判断成“层数多所以过拟合”？<br />
+3. 如果改成残差块，理论上改善点在哪里？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>更像退化问题。</li>
+<li>因为连训练误差都变差了，不符合典型过拟合的“训低验高”。</li>
+<li>残差连接提供恒等路径，使优化更容易、梯度传播更稳定。</li>
+<li><strong>对应教材：</strong> §7.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 293)" class="page-link" title="教材第275页 → PDF 第293页">p275</a>-288</li>
+</ul>
+<h4>题4【教材练习】</h4>
+<p>将 ResNet 中的残差块 (F(x)+x) 里的加法改为乘法 (F(x) \cdot x) 会有什么问题？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 306)" class="page-link" title="教材第288页 → PDF 第306页">p288</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>若 (F(x)) 学到接近 0 的值，则乘法会将整个信号"消除"，梯度从此路径也无法传回，失去捷径的作用。</li>
+<li>加法残差连接保证了梯度至少有一条路径（恒等捷径）不经过任何非线性变换直接回流，数值稳定性更好。</li>
+<li>因此加法跳跃连接是 ResNet 有效的关键设计。</li>
+</ul>
+<h4>题5【教材练习】</h4>
+<p>在 ResNet 中，批量规范化（BN）通常放在激活函数之前还是之后？两种顺序有何区别？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 301)" class="page-link" title="教材第283页 → PDF 第301页">p283</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>原始 ResNet 论文采用"卷积 → BN → ReLU"顺序；后续研究（Pre-activation ResNet）改为"BN → ReLU → 卷积"。</li>
+<li>Pre-activation 版本使残差路径保持"干净"（不经过任何激活），梯度传播更畅通，在深层网络中效果略优。</li>
+<li>实践中两者差距不大，默认用原始顺序。</li>
+</ul>
+<hr />
+<h2>第三部分：循环神经网络（RNN）</h2>
+<h3>考点14：RNN</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 填空 / 简答 / 代码 / 综合</li>
+</ul>
+<h4>题1【填空】</h4>
+<p>普通 RNN 的隐状态更新常写作：(H_t=\underline{\hspace{5cm}})。</p>
+<ul>
+<li><strong>答案：</strong> (\phi(X_tW_{xh}+H_{t-1}W_{hh}+b_h))</li>
+<li><strong>对应教材：</strong> §8.4-§8.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 330)" class="page-link" title="教材第312页 → PDF 第330页">p312</a>-332</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>为什么普通 RNN 容易出现梯度消失或爆炸？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>时间展开后反向传播需要连乘多个时间步的雅可比矩阵。</li>
+<li>若模长长期小于 1 会消失，大于 1 会爆炸。</li>
+<li>这就是长期依赖学习困难的根源之一。</li>
+<li><strong>对应教材：</strong> §8.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 343)" class="page-link" title="教材第325页 → PDF 第343页">p325</a>-332</li>
+</ul>
+<h4>题3【代码】</h4>
+<p>写出训练 RNN 时常见的梯度裁剪代码片段。</p>
+<ul>
+<li><strong>参考答案：</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_norm</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+<span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+</code></pre></div>
+
+<ul>
+<li><strong>对应教材：</strong> §8.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 343)" class="page-link" title="教材第325页 → PDF 第343页">p325</a>-332</li>
+</ul>
+<h4>题4【综合】</h4>
+<p>某字符级语言模型训练时，loss 突然变成 <code>nan</code>，梯度范数暴涨到几百。
+1. 主要问题是什么？<br />
+2. 最直接的应对方法是什么？<br />
+3. 如果困惑度持续很高，说明什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>梯度爆炸。</li>
+<li>梯度裁剪。</li>
+<li>说明模型对下一个词的预测仍然很”困惑”，语言建模能力弱。</li>
+<li><strong>对应教材：</strong> §8.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 343)" class="page-link" title="教材第325页 → PDF 第343页">p325</a>-332</li>
+</ul>
+<h4>题4【教材练习】</h4>
+<p>BPTT（通过时间反向传播）有三种截断策略：完全计算、规则截断和随机截断。请说明规则截断（Truncated BPTT）的思路及优点。（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 352)" class="page-link" title="教材第334页 → PDF 第352页">p334</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>规则截断：将序列分成等长的片段，每个片段独立地进行前向传播和反向传播，到片段末尾时分离梯度（<code>detach</code>）。</li>
+<li>优点：内存可控，梯度只在固定长度内回传，防止梯度爆炸；计算复杂度从 (O(T)) 降低。</li>
+<li>缺点：长于截断步长的依赖关系无法通过梯度捕获，但实践效果良好（短期依赖通常更重要）。</li>
+</ul>
+<h4>题5【教材练习】</h4>
+<p>在高级 API 的 RNN 实现中，<code>rnn_layer</code> 的输出 Y 是什么？它和最终模型输出有何区别？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 347)" class="page-link" title="教材第329页 → PDF 第347页">p329</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li><code>rnn_layer</code> 的输出 Y 是每个时间步的隐状态，形状为 <code>(时间步数, 批量大小, 隐藏单元数)</code>。</li>
+<li>这些隐状态需再经过一个线性输出层（全连接层）才能得到词表大小的预测分布。</li>
+<li>区别：Y 是中间隐状态表示，最终输出是对词表的 logits，两者形状和语义均不同。</li>
+</ul>
+<hr />
+<h3>考点15：GRU</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 填空 / 简答 / 对比 / 综合</li>
+</ul>
+<h4>题1【填空】</h4>
+<p>GRU 中常见的两个门是<strong><em>_</em></strong>_门和<strong><em>_</em></strong>_门。</p>
+<ul>
+<li><strong>答案：</strong> 重置门；更新门</li>
+<li><strong>对应教材：</strong> §9.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 351)" class="page-link" title="教材第333页 → PDF 第351页">p333</a>-341</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>GRU 为什么能缓解普通 RNN 的梯度消失问题？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>通过门控机制控制历史信息保留和新信息写入。</li>
+<li>更新门较大时，历史状态可直接保留。</li>
+<li>重要信息可跨更长时间传播。</li>
+<li><strong>对应教材：</strong> §9.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 351)" class="page-link" title="教材第333页 → PDF 第351页">p333</a>-341</li>
+</ul>
+<h4>题3【对比】</h4>
+<p>比较 GRU 和 LSTM 在门控结构、参数量和使用场景上的差异。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>GRU 两个门，LSTM 三个门且有独立记忆单元 (C_t)。</li>
+<li>GRU 参数更少，结构更轻量。</li>
+<li>LSTM 表达更灵活，GRU 常在效果接近时因更简洁而被采用。</li>
+<li><strong>对应教材：</strong> §9.1-§9.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 351)" class="page-link" title="教材第333页 → PDF 第351页">p333</a>-349</li>
+</ul>
+<h4>题4【综合】</h4>
+<p>某序列任务长度较长，普通 RNN 效果很差。你只有有限显存，想在 GRU 和 LSTM 中二选一。你会如何权衡？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>两者都比普通 RNN 更适合长依赖。</li>
+<li>若显存和参数预算更紧，可优先考虑 GRU。</li>
+<li>若任务更依赖复杂长期记忆，可考虑 LSTM。</li>
+<li><strong>对应教材：</strong> §9.1-§9.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 351)" class="page-link" title="教材第333页 → PDF 第351页">p333</a>-349</li>
+</ul>
+<h4>题4【教材练习】</h4>
+<p>假设只使用时间步 t 之前（不含 t）的输入来预测时间步 t 的输出，在这种设定下，GRU 的重置门和更新门最优取值应该是什么？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 360)" class="page-link" title="教材第342页 → PDF 第360页">p342</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>如果只用 t 之前的历史而不看当前输入 (x_t)：重置门 (R_t \to 1)（完全保留历史隐状态），更新门 (Z_t \to 1)（全部保留旧状态，不更新）。</li>
+<li>此时候选状态 (\tilde{H}_t) 不会混入 (x_t) 的信息，而更新门使新隐状态等于旧隐状态，模型退化为仅依赖历史。</li>
+<li>实践中 GRU 能自动学到这种特殊模式。</li>
+</ul>
+<h4>题5【教材练习】</h4>
+<p>如果仅实现 GRU 的一部分，例如只有一个重置门（没有更新门），模型行为会发生什么？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 360)" class="page-link" title="教材第342页 → PDF 第360页">p342</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>没有更新门时，每步都完全用候选状态替换旧状态（相当于更新门始终为 1），无法学习"跳过"无关时间步。</li>
+<li>只剩重置门可以控制旧状态被遗忘的程度，但缺乏长期保留机制，退化接近带遗忘的普通 RNN。</li>
+<li>无法有效捕获序列中的长距离依赖。</li>
+</ul>
+<hr />
+<h3>考点16：LSTM</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 填空 / 简答 / 公式 / 代码阅读 / 对比</li>
+</ul>
+<h4>题1【填空】</h4>
+<p>LSTM 中负责长期记忆传递的变量通常记为<strong><em>_</em></strong>_。</p>
+<ul>
+<li><strong>答案：</strong> (C_t)</li>
+<li><strong>对应教材：</strong> §9.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 359)" class="page-link" title="教材第341页 → PDF 第359页">p341</a>-349</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>说明 LSTM 中遗忘门、输入门、输出门各自的作用。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>遗忘门决定丢弃多少旧记忆。</li>
+<li>输入门决定写入多少新信息。</li>
+<li>输出门决定当前时刻输出多少记忆内容。</li>
+<li><strong>对应教材：</strong> §9.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 359)" class="page-link" title="教材第341页 → PDF 第359页">p341</a>-349</li>
+</ul>
+<h4>题3【代码阅读】</h4>
+<p>下面代码中 <code>out[:, -1, :]</code> 的作用是什么？</p>
+<div class="highlight"><pre><span></span><code><span class="n">out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+</code></pre></div>
+
+<ul>
+<li><strong>答案：</strong> 取序列最后一个时间步的隐状态表示，再送入分类头进行预测。</li>
+<li><strong>对应教材：</strong> §9.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 359)" class="page-link" title="教材第341页 → PDF 第359页">p341</a>-349</li>
+</ul>
+<h4>题4【公式】</h4>
+<p>写出 LSTM 的记忆单元更新公式 (C_t) 与隐藏状态输出公式 (H_t)。</p>
+<ul>
+<li><strong>答案：</strong></li>
+<li>(C_t=F_t\odot C_{t-1}+I_t\odot \tilde{C}_t)</li>
+<li>(H_t=O_t\odot \tanh(C_t))</li>
+<li><strong>对应教材：</strong> §9.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 359)" class="page-link" title="教材第341页 → PDF 第359页">p341</a>-349</li>
+</ul>
+<h4>题5【对比】</h4>
+<p>为什么说 LSTM 的“记忆带”设计特别适合处理长期依赖？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>独立的 (C_t) 提供了较稳定的信息传递通路。</li>
+<li>遗忘门和输入门共同控制保留与写入。</li>
+<li>相比普通 RNN，更不容易在长序列中丢失关键信息。</li>
+<li><strong>对应教材：</strong> §9.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 359)" class="page-link" title="教材第341页 → PDF 第359页">p341</a>-349</li>
+</ul>
+<h4>题6【教材练习】</h4>
+<p>既然候选记忆元 (\tilde{C}_t) 通过 tanh 确保输出在 (-1,1) 之间，为什么计算隐状态时还需要再次对 (C_t) 施加 tanh？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 367)" class="page-link" title="教材第349页 → PDF 第367页">p349</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>(\tilde{C}<em>t) 的值在 (-1,1)，但记忆元 (C_t = F_t \odot C</em>{t-1} + I_t \odot \tilde{C}_t) 是多个时间步累加的结果，数值可能超出 (-1,1)。</li>
+<li>对 (C_t) 再次施加 tanh 是为了将最终输出 (H_t = O_t \odot \tanh(C_t)) 的值压回有界范围，防止激活值无限增长。</li>
+<li>如果不做这一步，随着时间步增加，记忆单元可能数值发散，导致训练不稳定。</li>
+</ul>
+<h4>题7【教材练习】</h4>
+<p>在给定隐藏层维度的情况下，比较 GRU、LSTM 和普通 RNN 的参数量（权重矩阵数量）。（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 367)" class="page-link" title="教材第349页 → PDF 第367页">p349</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>普通 RNN：输入到隐藏 (W_{xh})、隐藏到隐藏 (W_{hh})，共 2 组。</li>
+<li>GRU：重置门和更新门各需 (W_{xr}, W_{hr}, W_{xz}, W_{hz})，加候选状态 (W_{xh}, W_{hh})，共 6 组。</li>
+<li>LSTM：输入门、遗忘门、输出门、候选记忆元各需 2 组矩阵，共 8 组。</li>
+<li>参数量：LSTM &gt; GRU &gt; RNN，训练成本依次递增。</li>
+</ul>
+<hr />
+<h3>考点17：深层RNN &amp; 双向RNN</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 应用判断</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>双向 RNN 不能直接用于语言模型，主要原因是（ ）
+A. 参数太少<br />
+B. 无法反向传播<br />
+C. 会看到未来信息<br />
+D. 不能处理变长序列</p>
+<ul>
+<li><strong>答案：</strong> C</li>
+<li><strong>对应教材：</strong> §9.3-§9.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 367)" class="page-link" title="教材第349页 → PDF 第367页">p349</a>-357</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>深层 RNN 与双向 RNN 的“深”和“双向”分别指什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>深层指多层 RNN 在层维度堆叠。</li>
+<li>双向指同一序列同时做前向和后向建模，再拼接表示。</li>
+<li><strong>对应教材：</strong> §9.3-§9.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 367)" class="page-link" title="教材第349页 → PDF 第367页">p349</a>-357</li>
+</ul>
+<h4>题3【应用判断】</h4>
+<p>词性标注和情感分类两个任务中，哪个更适合直接使用双向 RNN？为什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>词性标注更适合直接使用双向 RNN，因为当前位置常需要结合前后文。</li>
+<li>情感分类也可使用，但双向性的必要性通常没有逐词标注任务那么强。</li>
+<li><strong>对应教材：</strong> §9.3-§9.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 367)" class="page-link" title="教材第349页 → PDF 第367页">p349</a>-357</li>
+</ul>
+<hr />
+<h3>考点18：Seq2Seq</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 填空 / 简答 / 综合</li>
+</ul>
+<h4>题1【填空】</h4>
+<p>Seq2Seq 训练时用真实输出作为下一时刻输入的策略称为<strong><em>_</em></strong>_。</p>
+<ul>
+<li><strong>答案：</strong> Teacher Forcing</li>
+<li><strong>对应教材：</strong> §9.6-§9.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 382)" class="page-link" title="教材第364页 → PDF 第382页">p364</a>-380</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>Beam Search 与贪心搜索有什么区别？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>贪心每一步只保留概率最高的一条路径。</li>
+<li>Beam Search 每一步保留前 k 条候选路径。</li>
+<li>当 k=1 时，Beam Search 退化为贪心搜索。</li>
+<li><strong>对应教材：</strong> §9.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 393)" class="page-link" title="教材第375页 → PDF 第393页">p375</a>-380</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>某翻译模型训练时收敛很快，但测试时经常“一步错步步错”。
+1. 这和哪种训练策略有关？<br />
+2. 为什么训练时有效、测试时却会暴露问题？<br />
+3. 这体现了什么现象？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>与 Teacher Forcing 有关。</li>
+<li>训练时输入是真实历史词，测试时输入是模型自己前一步输出，分布不同。</li>
+<li>体现了暴露偏差（exposure bias）。</li>
+<li><strong>对应教材：</strong> §9.6-§9.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 382)" class="page-link" title="教材第364页 → PDF 第382页">p364</a>-380</li>
+</ul>
+<hr />
+<h3>考点19：语言模型</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 填空 / 概念解释 / 简答</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>关于 n-gram 语言模型，正确的是（ ）
+A. 预测时会看到未来词<br />
+B. 属于完全无条件模型<br />
+C. n-gram 只依赖前 (n-1) 个词<br />
+D. 不能用于文本建模</p>
+<ul>
+<li><strong>答案：</strong> C</li>
+<li><strong>对应教材：</strong> §8.2-§8.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 316)" class="page-link" title="教材第298页 → PDF 第316页">p298</a>-312</li>
+</ul>
+<h4>题2【填空】</h4>
+<p><code>&lt;bos&gt;</code> 和 <code>&lt;eos&gt;</code> 分别表示<strong><em>_</em></strong><em>和<strong><em>_</em></strong></em>。</p>
+<ul>
+<li><strong>答案：</strong> 序列开始；序列结束</li>
+<li><strong>对应教材：</strong> §8.2-§8.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 316)" class="page-link" title="教材第298页 → PDF 第316页">p298</a>-312</li>
+</ul>
+<h4>题3【简答】</h4>
+<p>n-gram 语言模型为什么难以处理较长距离依赖？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>它只依赖前 (n-1) 个词。</li>
+<li>超出窗口的历史信息会被直接截断。</li>
+<li>因此难以建模远距离语义关系。</li>
+<li><strong>对应教材：</strong> §8.2-§8.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 316)" class="page-link" title="教材第298页 → PDF 第316页">p298</a>-312</li>
+</ul>
+<hr />
+<h2>第四部分：注意力机制</h2>
+<h3>考点20：注意力机制基础</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 填空 / 计算 / 简答</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>Q、K、V 都来自同一输入序列的注意力称为（ ）
+A. 交叉注意力<br />
+B. 自注意力<br />
+C. 残差注意力<br />
+D. 池化注意力</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §10.1-§10.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 399)" class="page-link" title="教材第381页 → PDF 第399页">p381</a>-398</li>
+</ul>
+<h4>题2【填空】</h4>
+<p>缩放点积注意力的打分函数常写成：(a(q,k)=\underline{\hspace{4cm}})。</p>
+<ul>
+<li><strong>答案：</strong> (q^Tk/\sqrt{d})</li>
+<li><strong>对应教材：</strong> §10.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 410)" class="page-link" title="教材第392页 → PDF 第410页">p392</a>-398</li>
+</ul>
+<h4>题3【简答】</h4>
+<p>为什么缩放点积注意力要除以 (\sqrt{d})？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>当维度 d 较大时，点积值可能很大。</li>
+<li>直接送入 softmax 会让分布过尖锐。</li>
+<li>梯度会变小，不利于训练。</li>
+<li><strong>对应教材：</strong> §10.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 410)" class="page-link" title="教材第392页 → PDF 第410页">p392</a>-398</li>
+</ul>
+<h4>题4【计算】</h4>
+<p>若 Query 与两个 Key 的打分分别为 2 和 0，忽略缩放，softmax 后哪个位置权重更大？为什么？</p>
+<ul>
+<li><strong>答案：</strong> 分数为 2 的位置权重更大，因为 softmax 会对更高的打分分配更大概率质量。</li>
+<li><strong>对应教材：</strong> §10.1-§10.3 <a href="javascript:void(0)" onclick="jumpToPage('教材', 399)" class="page-link" title="教材第381页 → PDF 第399页">p381</a>-398</li>
+</ul>
+<hr />
+<h3>考点21：Seq2Seq + 注意力</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 简答 / 综合分析</li>
+</ul>
+<h4>题1【简答】</h4>
+<p>注意力机制如何改进原始 Seq2Seq？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>原始 Seq2Seq 常把整句压缩到单一上下文向量，存在信息瓶颈。</li>
+<li>注意力允许解码器每一步动态查看源序列不同位置。</li>
+<li>长句时更不容易丢失关键信息。</li>
+<li><strong>对应教材：</strong> §10.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 417)" class="page-link" title="教材第399页 → PDF 第417页">p399</a>-403</li>
+</ul>
+<h4>题2【综合】</h4>
+<p>某翻译样例中，原始 Seq2Seq 在长句后半段翻译质量明显变差，而加入注意力后改善明显。
+1. 原模型的瓶颈在哪里？<br />
+2. 注意力从信息流角度解决了什么问题？<br />
+3. 这种改进对长序列为什么尤其重要？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>主要瓶颈是单一固定上下文向量。</li>
+<li>解码时可回看全部源序列，而不是只依赖最后一个隐状态。</li>
+<li>长序列信息压缩损失更严重，因此注意力收益更明显。</li>
+<li><strong>对应教材：</strong> §10.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 417)" class="page-link" title="教材第399页 → PDF 第417页">p399</a>-403</li>
+</ul>
+<hr />
+<h3>考点22：Transformer</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 结构图 / 代码阅读 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>Transformer 解码器中的 masked self-attention 的作用是（ ）
+A. 减少参数量<br />
+B. 防止当前位置看到未来词<br />
+C. 替代位置编码<br />
+D. 替代前馈网络</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §10.6-§10.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 428)" class="page-link" title="教材第410页 → PDF 第428页">p410</a>-426</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>为什么 Transformer 通常使用 LayerNorm 而不是 BatchNorm？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>LayerNorm 按样本内部特征归一化，不依赖 batch 统计量。</li>
+<li>序列任务中样本长度可变，BatchNorm 统计不稳定。</li>
+<li>小 batch 场景下 LayerNorm 更自然。</li>
+<li><strong>对应教材：</strong> §10.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 431)" class="page-link" title="教材第413页 → PDF 第431页">p413</a>-426</li>
+</ul>
+<h4>题3【结构图】</h4>
+<p>请写出 Transformer 编码器与解码器的基本结构顺序。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>编码器：多头自注意力 → Add&amp;Norm → FFN → Add&amp;Norm。</li>
+<li>解码器：掩蔽多头自注意力 → Add&amp;Norm → 编码器-解码器注意力 → Add&amp;Norm → FFN → Add&amp;Norm。</li>
+<li><strong>对应教材：</strong> §10.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 431)" class="page-link" title="教材第413页 → PDF 第431页">p413</a>-426</li>
+</ul>
+<h4>题4【综合】</h4>
+<p>阅读下面结论并判断正误：
+“Transformer 不需要位置编码，因为自注意力已经能自动知道词序。”</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>该结论错误。</li>
+<li>自注意力本身对输入顺序是置换不敏感的。</li>
+<li>如果没有位置编码，模型难以区分相同词在不同位置的作用。</li>
+<li><strong>对应教材：</strong> §10.6-§10.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 428)" class="page-link" title="教材第410页 → PDF 第428页">p410</a>-426</li>
+</ul>
+<h4>题5【场景综合】</h4>
+<p>某同学在实现 Transformer 解码器时，忘记加 mask，训练集 loss 很低，但推理时生成质量很差。
+1. 为什么训练时看起来“很好学”？<br />
+2. 推理时为什么反而变差？<br />
+3. 这违反了什么约束？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>因为训练时模型偷看了未来词，任务被人为简化。</li>
+<li>推理时未来词不可见，训练/推理条件不一致。</li>
+<li>违反了自回归生成约束。</li>
+<li><strong>对应教材：</strong> §10.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 431)" class="page-link" title="教材第413页 → PDF 第431页">p413</a>-426</li>
+</ul>
+<h4>题6【教材练习】</h4>
+<p>Transformer 编码器中使用层规范化（LN）而不是批量规范化（BN），其原因是什么？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 434)" class="page-link" title="教材第416页 → PDF 第434页">p416</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>BN 对批量维度做归一化，要求批量内样本统计量稳定；在 NLP 中序列长度可变，批量内词元数不同，BN 效果差。</li>
+<li>LN 对每个样本在特征维度上归一化，不依赖批量大小，对变长序列自然适用。</li>
+<li>在序列建模任务中，LN 的效果通常优于 BN。</li>
+</ul>
+<h4>题7【教材练习】</h4>
+<p>在多头注意力中，如果只想剪掉"最不重要"的注意力头以提升推理速度，如何设计实验来衡量注意力头的重要性？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 425)" class="page-link" title="教材第407页 → PDF 第425页">p407</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>方法1：逐一移除每个注意力头后测量验证集性能下降幅度，性能下降最小的头重要性最低。</li>
+<li>方法2：计算每个头的注意力权重的平均熵——熵越高说明该头关注更均匀，可能信息量更低。</li>
+<li>方法3：梯度敏感度：对注意力权重的梯度绝对值求和，值越小说明该头对损失影响越小。</li>
+</ul>
+<hr />
+<h3>考点23：BERT</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 填空 / 简答 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>BERT 的预训练任务包括（ ）
+A. IoU 和 NMS<br />
+B. MLM 和 NSP<br />
+C. Beam Search 和 BLEU<br />
+D. RPN 和 RoI Pooling</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §14.8-§14.10 <a href="javascript:void(0)" onclick="jumpToPage('教材', 697)" class="page-link" title="教材第679页 → PDF 第697页">p679</a>-702</li>
+</ul>
+<h4>题2【填空】</h4>
+<p>BERT 是基于多层 Transformer <strong><em>_</em></strong>_器构建的预训练模型。</p>
+<ul>
+<li><strong>答案：</strong> 编码</li>
+<li><strong>对应教材：</strong> §14.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 697)" class="page-link" title="教材第679页 → PDF 第697页">p679</a>-691</li>
+</ul>
+<h4>题3【简答】</h4>
+<p>为什么 BERT 的 MLM 更适合学习双向表示？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>MLM 会随机遮盖词。</li>
+<li>模型可以利用左右两侧上下文共同预测被遮盖词。</li>
+<li>因此获得双向语义表示。</li>
+<li><strong>对应教材：</strong> §14.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 697)" class="page-link" title="教材第679页 → PDF 第697页">p679</a>-691</li>
+</ul>
+<h4>题4【综合】</h4>
+<p>比较 BERT 和 GPT/自回归解码器在模型结构、训练目标、双向性和典型用途上的差异。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>BERT 基于编码器，GPT 基于解码器。</li>
+<li>BERT 用 MLM/NSP，GPT 主要做自回归下一个词预测。</li>
+<li>BERT 是双向建模，GPT 是单向/因果建模。</li>
+<li>BERT 擅长理解类任务，GPT 更适合生成类任务。</li>
+<li><strong>对应教材：</strong> §10.7，§14.8-§14.10 <a href="javascript:void(0)" onclick="jumpToPage('教材', 431)" class="page-link" title="教材第413页 → PDF 第431页">p413</a>-426, <a href="javascript:void(0)" onclick="jumpToPage('教材', 697)" class="page-link" title="教材第679页 → PDF 第697页">p679</a>-702</li>
+</ul>
+<h4>题6【教材练习】</h4>
+<p>为什么 BERT 成功了？从双向编码、预训练任务设计和规模三个角度分析。（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 710)" class="page-link" title="教材第692页 → PDF 第710页">p692</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li><strong>双向编码</strong>：MLM 允许每个词的表示同时依赖左侧和右侧上下文，ELMo 虽双向但拼接两个单向，BERT 真正在同一层内双向交互。</li>
+<li><strong>预训练任务</strong>：MLM 使模型学到深层语义（非trivial预测），NSP 使模型学到句间关系，两个任务互补。</li>
+<li><strong>规模与数据</strong>：在 BookCorpus（8亿词）+ 英文维基百科（25亿词）上预训练，参数量大，泛化能力强。</li>
+</ul>
+<h4>题7【教材练习】</h4>
+<p>掩蔽语言模型（MLM）中，为什么被选中的 15% 词元里只有 80% 用 <code>&lt;mask&gt;</code> 替换，另外 10% 替换为随机词元，10% 保持不变？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 706)" class="page-link" title="教材第688页 → PDF 第706页">p688</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>若 100% 使用 <code>&lt;mask&gt;</code>：微调时输入中不存在 <code>&lt;mask&gt;</code>，训练/微调分布不匹配（预训练/微调不一致）。</li>
+<li>10% 随机词元：使模型不能对任何位置"放松警惕"，必须对所有 token 保持上下文建模能力。</li>
+<li>10% 保持不变：使模型的表示偏向真实词元，不完全依赖 <code>&lt;mask&gt;</code> 触发。</li>
+<li>三种比例的组合减轻了预训练与微调之间的分布差异。</li>
+</ul>
+<h4>题8【教材练习】</h4>
+<p>在 BERT 原始实现中，位置前馈网络和掩蔽语言模型头中使用的是 GELU 激活函数而非 ReLU，GELU 与 ReLU 有何不同？（教材 <a href="javascript:void(0)" onclick="jumpToPage('教材', 710)" class="page-link" title="教材第692页 → PDF 第710页">p692</a>）</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>ReLU：(\max(0, x))，负值直接截零，梯度不连续（在 0 点）。</li>
+<li>GELU（高斯误差线性单元）：(x \cdot \Phi(x))，其中 (\Phi) 是标准正态分布的 CDF。GELU 在负值区域有小梯度（类似"软" ReLU），平滑可微。</li>
+<li>GELU 在 NLP 预训练任务中实验效果优于 ReLU，但两者差距不大；现代 LLM 常用 SiLU/Swish 等变体。</li>
+</ul>
+<hr />
+<h2>第五部分：计算机视觉</h2>
+<h3>考点24：图片增广</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 应用判断 / 综合分析</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>下列通常属于训练阶段图像增广的是（ ）
+A. 随机翻转<br />
+B. 随机裁剪<br />
+C. 颜色抖动<br />
+D. 以上都是</p>
+<ul>
+<li><strong>答案：</strong> D</li>
+<li><strong>对应教材：</strong> §13.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 567)" class="page-link" title="教材第549页 → PDF 第567页">p549</a>-557</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>为什么测试阶段通常不能使用随机增广？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>会引入随机性，结果不稳定。</li>
+<li>测试目标是稳定评估模型真实泛化能力。</li>
+<li>一般只做标准化等确定性变换。</li>
+<li><strong>对应教材：</strong> §13.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 567)" class="page-link" title="教材第549页 → PDF 第567页">p549</a>-557</li>
+</ul>
+<h4>题3【应用判断】</h4>
+<p>下面四种操作中，哪些更适合作为训练增广，哪些更适合作为测试预处理：随机翻转、随机裁剪、颜色抖动、标准化？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>随机翻转、随机裁剪、颜色抖动更适合作为训练增广。</li>
+<li>标准化通常训练和测试都做，但它属于确定性预处理，不是随机增广。</li>
+<li><strong>对应教材：</strong> §13.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 567)" class="page-link" title="教材第549页 → PDF 第567页">p549</a>-557</li>
+</ul>
+<h4>题4【综合分析】</h4>
+<p>某图像分类模型训练准确率很高，但验证准确率偏低。你加入随机翻转、随机裁剪、颜色抖动后，训练准确率略降但验证准确率上升。
+1. 这个现象是否合理？<br />
+2. 为什么训练指标反而可能下降？<br />
+3. 图像增广本质上在改善什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>合理。</li>
+<li>因为训练样本被刻意变得更难，模型更难记住训练集细节。</li>
+<li>本质上是在扩充数据分布、缓解过拟合、提升泛化能力。</li>
+<li><strong>对应教材：</strong> §13.1 <a href="javascript:void(0)" onclick="jumpToPage('教材', 567)" class="page-link" title="教材第549页 → PDF 第567页">p549</a>-557</li>
+</ul>
+<hr />
+<h3>考点25：微调</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 简答 / 代码 / 综合方案</li>
+</ul>
+<h4>题1【简答】</h4>
+<p>简述微调预训练模型的一般步骤。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>加载预训练模型。</li>
+<li>替换任务相关输出层。</li>
+<li>新输出层随机初始化。</li>
+<li>用较小学习率微调主体、较大学习率训练新头部。</li>
+<li><strong>对应教材：</strong> §13.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 575)" class="page-link" title="教材第557页 → PDF 第575页">p557</a>-563</li>
+</ul>
+<h4>题2【代码】</h4>
+<p>写出微调预训练 ResNet 的关键代码骨架。</p>
+<ul>
+<li><strong>参考答案：</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet18</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">ResNet18_Weights</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+<span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">([</span>
+    <span class="p">{</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="mf">1e-2</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_parameters</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;fc&quot;</span><span class="p">)],</span> <span class="s2">&quot;lr&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">}</span>
+<span class="p">],</span> <span class="n">momentum</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span>
+</code></pre></div>
+
+<ul>
+<li><strong>对应教材：</strong> §13.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 575)" class="page-link" title="教材第557页 → PDF 第575页">p557</a>-563</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>你有一个只有 800 张图像的小型分类数据集，需要训练 10 类分类器。请说明为什么更推荐微调而不是从头训练，并给出一个合理训练方案。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>小数据集从头训练容易过拟合。</li>
+<li>预训练模型已学到通用边缘/纹理/形状特征。</li>
+<li>可采用预训练模型 + 替换分类头 + 数据增广 + 分层学习率微调。</li>
+<li><strong>对应教材：</strong> §13.1-§13.2 <a href="javascript:void(0)" onclick="jumpToPage('教材', 567)" class="page-link" title="教材第549页 → PDF 第567页">p549</a>-563</li>
+</ul>
+<hr />
+<h3>考点26：物体检测（R-CNN/SSD/YOLO）</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合比较</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>以下属于单阶段目标检测器的是（ ）
+A. Faster R-CNN<br />
+B. YOLO<br />
+C. Fast R-CNN<br />
+D. R-CNN</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §13.3-§13.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 582)" class="page-link" title="教材第564页 → PDF 第582页">p564</a>-605</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>请概述 R-CNN、Fast R-CNN、Faster R-CNN、YOLO 的演进逻辑。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>R-CNN：候选框逐个过 CNN，慢。</li>
+<li>Fast R-CNN：整图共享卷积特征，更快。</li>
+<li>Faster R-CNN：RPN 代替选择性搜索。</li>
+<li>YOLO：单阶段直接回归类别与位置，速度更快。</li>
+<li><strong>对应教材：</strong> §13.3-§13.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 582)" class="page-link" title="教材第564页 → PDF 第582页">p564</a>-605</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>如果任务要求“实时检测”，你更倾向于选 Faster R-CNN 还是 YOLO？如果要求“精度优先”，你的答案会变吗？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>实时检测更倾向 YOLO，因为速度快。</li>
+<li>精度优先时常更倾向两阶段方法如 Faster R-CNN。</li>
+<li>本质是速度与精度的权衡。</li>
+<li><strong>对应教材：</strong> §13.3-§13.8 <a href="javascript:void(0)" onclick="jumpToPage('教材', 582)" class="page-link" title="教材第564页 → PDF 第582页">p564</a>-605</li>
+</ul>
+<hr />
+<h3>考点27：语义分割 &amp; FCN</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>语义分割的核心任务是（ ）
+A. 给整张图一个类别<br />
+B. 给每个像素一个类别<br />
+C. 只预测边界框<br />
+D. 只预测关键点</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §13.9-§13.11 <a href="javascript:void(0)" onclick="jumpToPage('教材', 623)" class="page-link" title="教材第605页 → PDF 第623页">p605</a>-623</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>FCN 中转置卷积通常起什么作用？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>用于上采样。</li>
+<li>将低分辨率特征图恢复到更高空间分辨率。</li>
+<li>便于输出与输入尺寸对齐的分割结果。</li>
+<li><strong>对应教材：</strong> §13.9-§13.11 <a href="javascript:void(0)" onclick="jumpToPage('教材', 623)" class="page-link" title="教材第605页 → PDF 第623页">p605</a>-623</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>比较语义分割与实例分割的区别，并说明“所有车都涂成同一种颜色”和“每辆车颜色不同”分别对应哪一种任务。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>语义分割只区分类别，不区分同类不同实例。</li>
+<li>实例分割既区分类别，也区分不同个体。</li>
+<li>所有车同色是语义分割；不同车不同色是实例分割。</li>
+<li><strong>对应教材：</strong> §13.9-§13.11 <a href="javascript:void(0)" onclick="jumpToPage('教材', 623)" class="page-link" title="教材第605页 → PDF 第623页">p605</a>-623</li>
+</ul>
+<hr />
+<h3>考点28：样式迁移</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合分析</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>样式迁移中，风格损失通常与什么有关？（ ）
+A. IoU<br />
+B. Gram 矩阵<br />
+C. Beam Search<br />
+D. 困惑度</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §13.12 <a href="javascript:void(0)" onclick="jumpToPage('教材', 642)" class="page-link" title="教材第624页 → PDF 第642页">p624</a>-632</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>内容损失与风格损失分别刻画什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>内容损失要求生成图保留原内容结构。</li>
+<li>风格损失要求生成图在纹理、色彩统计等方面接近风格图。</li>
+<li><strong>对应教材：</strong> §13.12 <a href="javascript:void(0)" onclick="jumpToPage('教材', 642)" class="page-link" title="教材第624页 → PDF 第642页">p624</a>-632</li>
+</ul>
+<h4>题3【综合分析】</h4>
+<p>某样式迁移结果“内容还能看出来，但几乎没有名画风格”。
+1. 更可能是哪一类损失权重偏大？<br />
+2. 如果生成图“风格很强但原图内容轮廓丢失严重”，又说明什么？<br />
+3. 这类任务为什么本质上是在平衡两种目标？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>更可能是内容损失权重偏大，压制了风格迁移效果。</li>
+<li>说明风格损失权重可能过大，内容约束不足。</li>
+<li>因为既要保留内容结构，又要匹配风格统计，两者需要权衡。</li>
+<li><strong>对应教材：</strong> §13.12 <a href="javascript:void(0)" onclick="jumpToPage('教材', 642)" class="page-link" title="教材第624页 → PDF 第642页">p624</a>-632</li>
+</ul>
+<hr />
+<h2>第六部分：NLP应用</h2>
+<h3>考点29：机器翻译</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>关于机器翻译任务，以下说法正确的是（ ）
+A. 输入输出长度必须相同<br />
+B. Seq2Seq 只能处理短句<br />
+C. 注意力机制有助于缓解长句翻译的信息瓶颈<br />
+D. 双向 RNN 最适合直接做自回归解码器</p>
+<ul>
+<li><strong>答案：</strong> C</li>
+<li><strong>对应教材：</strong> §9.5, §10.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 375)" class="page-link" title="教材第357页 → PDF 第375页">p357</a>-362, <a href="javascript:void(0)" onclick="jumpToPage('教材', 417)" class="page-link" title="教材第399页 → PDF 第417页">p399</a>-403</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>机器翻译任务中，为什么常使用 Seq2Seq + 注意力？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>Seq2Seq 适合处理变长输入输出序列。</li>
+<li>注意力缓解单一上下文向量带来的信息瓶颈。</li>
+<li>对长句翻译更有效。</li>
+<li><strong>对应教材：</strong> §9.5, §10.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 375)" class="page-link" title="教材第357页 → PDF 第375页">p357</a>-362, <a href="javascript:void(0)" onclick="jumpToPage('教材', 417)" class="page-link" title="教材第399页 → PDF 第417页">p399</a>-403</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>某翻译系统对短句表现尚可，但对长句经常漏译后半句。请从模型结构角度分析原因并提出改进方向。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>可能过度依赖固定长度上下文表示。</li>
+<li>长句信息压缩损失更明显。</li>
+<li>可加入注意力，或直接采用 Transformer。</li>
+<li><strong>对应教材：</strong> §9.5, §10.4, §10.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 375)" class="page-link" title="教材第357页 → PDF 第375页">p357</a>-362, <a href="javascript:void(0)" onclick="jumpToPage('教材', 417)" class="page-link" title="教材第399页 → PDF 第417页">p399</a>-426</li>
+</ul>
+<hr />
+<h3>考点30：自然语言推理（NLI）</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 应用判断 / 简答</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>NLI 的任务是判断句子对之间的（ ）
+A. 翻译质量<br />
+B. 情感极性<br />
+C. 蕴含/矛盾/中性关系<br />
+D. 主题数量</p>
+<ul>
+<li><strong>答案：</strong> C</li>
+<li><strong>对应教材：</strong> §15.4-§15.5 <a href="javascript:void(0)" onclick="jumpToPage('教材', 737)" class="page-link" title="教材第719页 → PDF 第737页">p719</a>-730</li>
+</ul>
+<h4>题2【应用】</h4>
+<p>前提句："猫在沙发上睡觉。"  假设句："一只动物正在休息。"  两句关系是（ ）</p>
+<ul>
+<li><strong>答案：</strong> 蕴含</li>
+<li><strong>对应教材：</strong> §15.4-§15.5 <a href="javascript:void(0)" onclick="jumpToPage('教材', 737)" class="page-link" title="教材第719页 → PDF 第737页">p719</a>-730</li>
+</ul>
+<h4>题3【简答】</h4>
+<p>请分别解释 NLI 中的“蕴含”“矛盾”“中性”三种关系。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>蕴含：前提成立时，假设也必然成立。</li>
+<li>矛盾：前提成立时，假设必然不成立。</li>
+<li>中性：无法仅凭前提判断假设真假。</li>
+<li><strong>对应教材：</strong> §15.4-§15.5 <a href="javascript:void(0)" onclick="jumpToPage('教材', 737)" class="page-link" title="教材第719页 → PDF 第737页">p719</a>-730</li>
+</ul>
+<hr />
+<h3>考点31：BERT微调应用</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 简答 / 代码阅读 / 方案设计 / 应用对比</li>
+</ul>
+<h4>题1【简答】</h4>
+<p>BERT 在单文本分类、文本对分类、序列标注三类任务上，输出层通常如何设计？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>单文本分类：取 <code>[CLS]</code> 表示接全连接层。</li>
+<li>文本对分类：输入 <code>[CLS] A [SEP] B [SEP]</code>，取 <code>[CLS]</code> 做分类。</li>
+<li>序列标注：对每个 token 表示分别接分类层。</li>
+<li><strong>对应教材：</strong> §15.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 749)" class="page-link" title="教材第731页 → PDF 第749页">p731</a>-740</li>
+</ul>
+<h4>题2【代码阅读】</h4>
+<p>下面这个 BERT 分类代码中，<code>cls = hidden[:, 0, :]</code> 的作用是什么？</p>
+<div class="highlight"><pre><span></span><code><span class="n">hidden</span> <span class="o">=</span> <span class="n">bert</span><span class="p">(</span><span class="n">input_ids</span><span class="p">,</span> <span class="n">attention_mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">last_hidden_state</span>
+<span class="bp">cls</span> <span class="o">=</span> <span class="n">hidden</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+<span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fc</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+</code></pre></div>
+
+<ul>
+<li><strong>答案：</strong> 取出 <code>[CLS]</code> 位置的表示，作为整句语义表示送入分类层。</li>
+<li><strong>对应教材：</strong> §15.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 749)" class="page-link" title="教材第731页 → PDF 第749页">p731</a>-740</li>
+</ul>
+<h4>题3【方案设计】</h4>
+<p>现在要做一个句子情感分类任务和一个命名实体识别任务。请分别说明你会如何使用 BERT 的输出表示。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>情感分类：使用 <code>[CLS]</code> 表示做整句分类。</li>
+<li>命名实体识别：对每个 token 的输出做逐词分类。</li>
+<li><strong>对应教材：</strong> §15.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 749)" class="page-link" title="教材第731页 → PDF 第749页">p731</a>-740</li>
+</ul>
+<h4>题4【应用对比】</h4>
+<p>为什么“整句分类任务”和“逐词标注任务”不能直接共用同一种输出头？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>整句分类只需要一个全局表示。</li>
+<li>逐词标注需要每个位置各自产生预测。</li>
+<li>两类任务监督信号的粒度不同。</li>
+<li><strong>对应教材：</strong> §15.6 <a href="javascript:void(0)" onclick="jumpToPage('教材', 749)" class="page-link" title="教材第731页 → PDF 第749页">p731</a>-740</li>
+</ul>
+<hr />
+<h2>第七部分：性能与系统</h2>
+<h3>考点32：CPU / GPU / ASIC</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 应用分析</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>为什么 GPU 特别适合深度学习？（ ）
+A. 因为 GPU 更擅长串行控制流<br />
+B. 因为 GPU 适合大规模并行矩阵运算<br />
+C. 因为 GPU 不需要显存<br />
+D. 因为 GPU 只能跑卷积</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §12.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 535)" class="page-link" title="教材第517页 → PDF 第535页">p517</a>-527</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>用一句形象化的话分别描述 CPU、GPU、ASIC 的特点。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>CPU：少量强核，适合复杂控制。</li>
+<li>GPU：大量并行核，适合矩阵计算。</li>
+<li>ASIC：为特定计算任务专门设计，效率高但通用性低。</li>
+<li><strong>对应教材：</strong> §12.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 535)" class="page-link" title="教材第517页 → PDF 第535页">p517</a>-527</li>
+</ul>
+<h4>题3【应用分析】</h4>
+<p>如果一个任务主要由大规模矩阵乘法组成，另一个任务主要包含复杂分支判断与控制逻辑，它们更适合优先放在什么硬件上？为什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>大规模矩阵乘法更适合 GPU。</li>
+<li>复杂控制逻辑更适合 CPU。</li>
+<li>因为前者并行度高，后者更依赖灵活控制与低延迟决策。</li>
+<li><strong>对应教材：</strong> §12.4 <a href="javascript:void(0)" onclick="jumpToPage('教材', 535)" class="page-link" title="教材第517页 → PDF 第535页">p517</a>-527</li>
+</ul>
+<hr />
+<h3>考点33：多GPU &amp; 分布式</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 选择 / 简答 / 综合分析</li>
+</ul>
+<h4>题1【选择】</h4>
+<p>数据并行训练中，各 GPU 在反向传播后通常需要进行（ ）
+A. Tokenization<br />
+B. 梯度 AllReduce<br />
+C. NMS<br />
+D. Beam Search</p>
+<ul>
+<li><strong>答案：</strong> B</li>
+<li><strong>对应教材：</strong> §12.5-§12.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 546)" class="page-link" title="教材第528页 → PDF 第546页">p528</a>-548</li>
+</ul>
+<h4>题2【简答】</h4>
+<p>简述数据并行训练的基本流程。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>每个 GPU 保留一份模型副本。</li>
+<li>不同 GPU 处理不同数据分片。</li>
+<li>分别前向、反向计算梯度。</li>
+<li>通过 AllReduce 同步梯度后更新参数。</li>
+<li><strong>对应教材：</strong> §12.5-§12.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 546)" class="page-link" title="教材第528页 → PDF 第546页">p528</a>-548</li>
+</ul>
+<h4>题3【综合】</h4>
+<p>某训练任务从单卡扩展到 4 卡后，吞吐提升不明显。已知模型参数量很大、单步通信时间接近计算时间。
+1. 主要瓶颈可能是什么？<br />
+2. 这属于计算问题还是通信问题？<br />
+3. 为什么分布式训练不一定线性加速？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>主要瓶颈是梯度同步通信开销。</li>
+<li>主要属于通信问题。</li>
+<li>因为多卡训练除了计算，还要付出同步、调度、带宽等成本。</li>
+<li><strong>对应教材：</strong> §12.5-§12.7 <a href="javascript:void(0)" onclick="jumpToPage('教材', 546)" class="page-link" title="教材第528页 → PDF 第546页">p528</a>-548</li>
+</ul>
+<hr />
+<h2>第八部分：综合应用（场景题为主）</h2>
+<h3>考点34：房价预测</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 综合 / 代码阅读 / 方案题</li>
+</ul>
+<h4>题1【场景综合】</h4>
+<p>你在做房价预测实验。训练集上 RMSE 很低，但交叉验证分数波动很大，不同折之间差异明显。
+1. 说明模型可能存在什么问题。<br />
+2. 为什么在这类表格数据任务中要做 K 折交叉验证？<br />
+3. 给出至少 3 条改进思路。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>可能存在过拟合或数据划分敏感。</li>
+<li>K 折能更稳定评估模型在不同数据划分下的泛化表现。</li>
+<li>可做特征工程、正则化、缺失值处理优化、模型集成、调节网络规模等。</li>
+<li><strong>对应教材：</strong> §4.10 <a href="javascript:void(0)" onclick="jumpToPage('教材', 198)" class="page-link" title="教材第180页 → PDF 第198页">p180</a>-188</li>
+</ul>
+<h4>题2【代码阅读】</h4>
+<p>下面流程中，哪一步最直接对应防止“某些特征量纲过大主导训练”？</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. 缺失值填补</span>
+<span class="c1"># 2. 连续特征标准化</span>
+<span class="c1"># 3. 类别特征 one-hot</span>
+<span class="c1"># 4. K 折交叉验证</span>
+</code></pre></div>
+
+<ul>
+<li><strong>答案：</strong> 第 2 步，连续特征标准化。</li>
+<li><strong>对应教材：</strong> §4.10 <a href="javascript:void(0)" onclick="jumpToPage('教材', 198)" class="page-link" title="教材第180页 → PDF 第198页">p180</a>-188</li>
+</ul>
+<hr />
+<h3>考点35：图片分类</h3>
+<ul>
+<li><strong>覆盖考法：</strong> 综合 / 代码 / 方案设计</li>
+</ul>
+<h4>题1【场景综合】</h4>
+<p>你要完成一个图片分类实验，数据量不大，类别较多，训练集准确率很高但验证集较低。请设计一个更合理的训练方案，要求至少包括：模型选择、初始化策略、数据处理、正则化、训练策略。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>选预训练 CNN（如 ResNet）做微调。</li>
+<li>用图像增广扩充训练数据。</li>
+<li>采用较小主体学习率、较大分类头学习率。</li>
+<li>使用权重衰退、Dropout、早停等缓解过拟合。</li>
+<li>结合验证集或交叉验证调参。</li>
+<li><strong>对应教材：</strong> §13.1-§13.2, §13.13-§13.14 <a href="javascript:void(0)" onclick="jumpToPage('教材', 567)" class="page-link" title="教材第549页 → PDF 第567页">p549</a>-563, <a href="javascript:void(0)" onclick="jumpToPage('教材', 651)" class="page-link" title="教材第633页 → PDF 第651页">p633</a>-648</li>
+</ul>
+<h4>题2【代码】</h4>
+<p>请写出一个“加载预训练模型并替换分类头”的最小代码骨架。</p>
+<ul>
+<li><strong>参考答案：</strong></li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">torchvision</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">resnet18</span><span class="p">(</span><span class="n">weights</span><span class="o">=</span><span class="n">models</span><span class="o">.</span><span class="n">ResNet18_Weights</span><span class="o">.</span><span class="n">DEFAULT</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fc</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">fc</span><span class="o">.</span><span class="n">in_features</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">)</span>
+</code></pre></div>
+
+<ul>
+<li><strong>对应教材：</strong> §13.2, §13.13-§13.14 <a href="javascript:void(0)" onclick="jumpToPage('教材', 575)" class="page-link" title="教材第557页 → PDF 第575页">p557</a>-563, <a href="javascript:void(0)" onclick="jumpToPage('教材', 651)" class="page-link" title="教材第633页 → PDF 第651页">p633</a>-648</li>
+</ul>
+<hr />
+<h2>三、单独整理的“综合题”专项</h2>
+<blockquote>
+<p>这一部分专门保留“实验报告/思考题风格”的综合题，强调：<strong>场景 + 分析 + 计算/代码阅读 + 解决方案</strong>。</p>
+</blockquote>
+<h3>综合题1：训练曲线诊断</h3>
+<p>某二分类模型训练 50 个 epoch 后，训练损失持续下降到 0.02，验证损失在第 12 个 epoch 后开始上升，验证准确率从 88% 降到 81%。
+1. 判断模型当前主要问题。<br />
+2. 从模型复杂度、数据处理、正则化、训练策略四方面分别给出一种改进方法。<br />
+3. 如果让你保留当前最佳模型，应该选择哪个 epoch 附近的参数？为什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>主要问题是过拟合。</li>
+<li>可减小模型规模；加强数据增广；加入权重衰退/Dropout；采用早停。</li>
+<li>应保留验证集表现最好的 epoch 附近，而不是最后一个 epoch。</li>
+<li><strong>涉及考点：</strong> 考点4-6</li>
+</ul>
+<h3>综合题2：卷积尺寸与参数分析</h3>
+<p>某输入图像大小为 (64\times64\times3)。第一层卷积核大小为 (5\times5)，输出通道数为 16，步幅 1，padding 2。
+1. 输出空间尺寸是多少？<br />
+2. 该卷积层参数量是多少（含偏置）？<br />
+3. 如果改成两个连续 3×3 卷积，结构设计上可能有什么优势？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>输出空间尺寸仍为 (64\times64)。</li>
+<li>参数量为 (5\times5\times3\times16+16=1216)。</li>
+<li>参数可能更省，并引入更多非线性。</li>
+<li><strong>涉及考点：</strong> 考点8、10</li>
+</ul>
+<h3>综合题3：代码阅读与错误定位</h3>
+<p>阅读下面代码，找出至少两个潜在问题：</p>
+<div class="highlight"><pre><span></span><code><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">loader</span><span class="p">:</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</code></pre></div>
+
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>缺少 <code>optimizer.zero_grad()</code>，梯度会累积。</li>
+<li>若是分类任务，还要确认 <code>pred</code> 和 <code>y</code> 的形状、损失函数是否匹配。</li>
+<li>若训练 RNN，可能还要考虑梯度裁剪。</li>
+<li><strong>涉及考点：</strong> 考点1、2、14</li>
+</ul>
+<h3>综合题4：RNN 结果分析</h3>
+<p>某 RNN 语言模型在短序列任务上效果尚可，但序列长度增大后困惑度明显恶化，训练中偶尔出现梯度爆炸。
+1. 这反映了普通 RNN 的哪两个典型问题？<br />
+2. 可以从模型结构和训练技巧两方面分别如何改进？<br />
+3. 如果换成 GRU/LSTM，理论上改善点是什么？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>长期依赖建模差，且存在梯度不稳定。</li>
+<li>结构上改用 GRU/LSTM；训练上用梯度裁剪等。</li>
+<li>门控机制允许信息跨时间更稳定传递。</li>
+<li><strong>涉及考点：</strong> 考点14-16</li>
+</ul>
+<h3>综合题5：Transformer 实现诊断</h3>
+<p>某同学实现的 Transformer 在训练集上 loss 很低，但生成时总是出现明显错误。检查发现：解码器没有使用 mask，且位置编码被省略。
+1. 这两个错误分别会导致什么问题？<br />
+2. 为什么训练集 loss 仍然可能很低？<br />
+3. 这说明只看训练损失有什么局限？</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>无 mask 会偷看未来词；无位置编码会丢失顺序信息。</li>
+<li>因为训练任务被错误地简化了。</li>
+<li>训练损失低不等于模型满足真实推理约束。</li>
+<li><strong>涉及考点：</strong> 考点20、22</li>
+</ul>
+<h3>综合题6：微调方案设计</h3>
+<p>你需要在一个只有 1000 张图片的小数据集上做 8 分类任务。实验室同学提出两种方案：
+A. 从头训练一个 50 层 CNN；<br />
+B. 直接微调预训练 ResNet。
+请比较两者，并给出你会采用的方案与理由。要求说明：数据规模、收敛速度、过拟合风险、迁移学习收益。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>小数据集更适合微调预训练模型。</li>
+<li>从头训练参数多、收敛慢、过拟合风险高。</li>
+<li>预训练模型已有通用特征，可更快收敛并提升泛化。</li>
+<li><strong>涉及考点：</strong> 考点24、25、35</li>
+</ul>
+<h3>综合题7：检测模型选型</h3>
+<p>某项目要求“在边缘设备上实时检测交通标志”，另一个项目要求“在服务器端高精度检测医学图像中的病灶”。请分别选择更合适的检测模型路线，并解释原因。</p>
+<ul>
+<li><strong>答案要点：</strong></li>
+<li>实时边缘设备更倾向 YOLO/SSD 这类单阶段模型。</li>
+<li>高精度服务器端任务更可考虑 Faster R-CNN 等两阶段方法。</li>
+<li>本质是速度、资源和精度需求不同。</li>
+<li><strong>涉及考点：</strong> 考点26</li>
+</ul>
+<hr />
+<h2>四、冲刺背诵清单</h2>
+<ol>
+<li>线性回归模型、MSE、解析解、SGD 更新</li>
+<li>Softmax + 交叉熵求导为什么是 (\hat{y}-y)</li>
+<li>ReLU / Sigmoid / Tanh 对比</li>
+<li>过拟合与欠拟合的判断与处理</li>
+<li>权重衰退更新公式</li>
+<li>Dropout 训练/测试区别</li>
+<li>Xavier 与 He 初始化适用场景</li>
+<li>卷积输出尺寸公式</li>
+<li>AlexNet / VGG / NiN / GoogLeNet / ResNet 核心创新</li>
+<li>RNN、GRU、LSTM 的核心公式与区别</li>
+<li>双向 RNN 为什么不能直接做语言模型</li>
+<li>Teacher Forcing / Beam Search</li>
+<li>注意力 QKV、缩放点积、多头</li>
+<li>Transformer 编码器/解码器结构、mask、位置编码、LN</li>
+<li>BERT 的 MLM / NSP、输入表示、典型微调方式</li>
+<li>微调、图像增广、目标检测演进、FCN、样式迁移</li>
+<li>CPU/GPU/ASIC、数据并行、AllReduce、通信瓶颈</li>
+</ol>
+<hr />
+<h2>五、后续可继续扩充的方向</h2>
+<ol>
+<li>继续给每个考点补“第二题型”，例如每个考点都补一题选择 + 一题综合</li>
+<li>增加“无答案版”题库，便于打印自测</li>
+<li>增加“只看综合题版”与“只看代码题版”</li>
+<li>给每题补教材页码区间，如 <code><a href="javascript:void(0)" onclick="jumpToPage('教材', 431)" class="page-link" title="教材第413页 → PDF 第431页">p413</a>-p426</code></li>
+<li>给综合题补“评分点/采分点”</li>
+<li>额外整理一份“实验报告思考题专项题库”</li>
+</ol>
+  </div>
+</div>
+<script>
+function isAnswerStart(el) {
+    if (!el) return false;
+    var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    return text.startsWith('答案：') || text.startsWith('答案要点：') || text.startsWith('参考答案：');
+}
+
+function wrapAnswers() {
+    var content = document.getElementById('noteContent');
+    if (!content) return;
+    var headings = content.querySelectorAll('h4');
+    headings.forEach(function(heading) {
+        var current = heading.nextElementSibling;
+        var answerStart = null;
+        while (current && current.tagName !== 'H2' && current.tagName !== 'H3' && current.tagName !== 'H4' && current.tagName !== 'HR') {
+            if (isAnswerStart(current)) {
+                answerStart = current;
+                break;
+            }
+            current = current.nextElementSibling;
+        }
+        if (!answerStart) return;
+        if (answerStart.previousElementSibling && answerStart.previousElementSibling.classList && answerStart.previousElementSibling.classList.contains('answer-block')) return;
+
+        var details = document.createElement('details');
+        details.className = 'answer-block';
+        var summary = document.createElement('summary');
+        summary.textContent = '点击展开答案';
+        var answerContent = document.createElement('div');
+        answerContent.className = 'answer-content';
+        details.appendChild(summary);
+        details.appendChild(answerContent);
+        answerStart.parentNode.insertBefore(details, answerStart);
+
+        current = answerStart;
+        while (current && current.tagName !== 'H2' && current.tagName !== 'H3' && current.tagName !== 'H4' && current.tagName !== 'HR') {
+            var next = current.nextElementSibling;
+            answerContent.appendChild(current);
+            current = next;
+        }
+    });
+}
+
+function doSearch() {
+    var query = document.getElementById('searchInput').value.trim().toLowerCase();
+    var content = document.getElementById('noteContent');
+    content.innerHTML = content.innerHTML.replace(/<span class="highlight-match">(.*?)<\/span>/g, '$1');
+    if (!query) return;
+    var walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+    var nodes = [];
+    while (walker.nextNode()) {
+        var node = walker.currentNode;
+        if (!node.nodeValue.trim()) continue;
+        if (node.parentNode && node.parentNode.classList && node.parentNode.classList.contains('highlight-match')) continue;
+        if (node.parentNode && ['SCRIPT', 'STYLE'].includes(node.parentNode.tagName)) continue;
+        nodes.push(node);
+    }
+    nodes.forEach(function(node) {
+        var text = node.nodeValue;
+        var lower = text.toLowerCase();
+        var idx = lower.indexOf(query);
+        if (idx >= 0) {
+            var span = document.createElement('span');
+            span.innerHTML = text.slice(0, idx) + '<span class="highlight-match">' + text.slice(idx, idx + query.length) + '</span>' + text.slice(idx + query.length);
+            node.parentNode.replaceChild(span, node);
+        }
+    });
+}
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    var c = document.getElementById('noteContent');
+    c.innerHTML = c.innerHTML.replace(/<span class="highlight-match">(.*?)<\/span>/g, '$1');
+}
+document.addEventListener('DOMContentLoaded', function() {
+    wrapAnswers();
+    if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false},
+                {left: '\(', right: '\)', display: false},
+                {left: '\[', right: '\]', display: true}
+            ],
+            throwOnError: false
+        });
+    }
+});
+</script>
+</body>
+</html>

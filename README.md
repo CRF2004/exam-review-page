@@ -1,15 +1,44 @@
 # Exam Review Toolkit
 
-一个面向**任意课程**的通用仓库，用来把课程材料整理成适合期末复习的产物。当前仓库主要覆盖三类工作：
+一个面向任意课程的通用仓库，用来把课程材料整理成适合期末复习的产物。当前仓库主要覆盖三类工作：
 
-1. **教材 / 讲义 PDF → 交互式复习笔记 HTML**
-2. **考点笔记 → 结构化题库 + 刷题 HTML**
-3. **课堂录音转写 / ASR 文本 → 课程摘要 + 完整知识点**
+1. 教材 / 讲义 PDF → 交互式复习笔记 HTML
+2. 考点笔记 → 结构化题库 + 刷题 HTML
+3. 课堂录音转写 / ASR 文本 → 课程摘要 + 完整知识点
+
+## 仓库结构
+
+```text
+.
+├── README.md
+├── generate_review_page.py
+├── exam-review.md
+├── exam-question-bank.md
+├── lecture-transcript-review.md
+├── examples/
+│   └── deep-learning/
+│       ├── 复习笔记_考点版.md
+│       ├── 复习笔记_考点版.html
+│       ├── 期末题库.md
+│       ├── 期末题库.html
+│       ├── 动手学深度学习-*.pdf
+│       └── assets/
+└── coursework/
+    └── deep-learning/
+        ├── experiments/
+        ├── reports/
+        └── misc/
+```
+
+设计原则：
+- 根目录只放通用工具和说明
+- `examples/` 放可直接打开的示例成品
+- `coursework/` 放课程私有实验过程、报告和中间材料
 
 ## 三个 Skill
 
 ### 1. `exam-review`
-把教材 PDF 和考点笔记组织成**交互式复习页**：左侧 PDF，右侧笔记。
+把教材 PDF 和考点笔记组织成交互式复习页：左侧 PDF，右侧笔记。
 
 适合：
 - 已经有教材 / 讲义 PDF
@@ -21,7 +50,7 @@
 - `generate_review_page.py`
 
 ### 2. `exam-question-bank`
-把考点笔记扩展成**结构化题库**，并生成**答案可折叠**的刷题 HTML 页面。
+把考点笔记扩展成结构化题库，并生成答案可折叠的刷题 HTML 页面。
 
 适合：
 - 已经有 `复习笔记_考点版.md`
@@ -60,30 +89,6 @@
 3. 再用 `exam-review` 生成交互式复习页
 4. 如需刷题，再接 `exam-question-bank`
 
-## 仓库核心文件
-
-- `generate_review_page.py`：通用 HTML 生成器
-- `exam-review.md`：复习笔记页面 skill
-- `exam-question-bank.md`：题库页面 skill
-- `lecture-transcript-review.md`：课堂转写抽取 skill
-
-## `generate_review_page.py` 支持的两种页面
-
-### `split`
-双栏模式：左侧 PDF，右侧笔记。
-
-适合：
-- `复习笔记_考点版.md`
-- 教材联动复习
-
-### `standalone`
-单栏模式：不显示 PDF，只显示内容区。
-
-适合：
-- `期末题库.md`
-- 课程摘要
-- 独立整理页
-
 ## 快速开始
 
 ### 1. 安装依赖
@@ -92,7 +97,7 @@
 pip install markdown
 ```
 
-### 2. 准备文件
+### 2. 准备课程目录
 
 ```text
 your-course/
@@ -137,9 +142,26 @@ python3 generate_review_page.py \
 python3 -m http.server 8080
 ```
 
-访问：
-- `http://localhost:8080/复习笔记_考点版.html`
-- `http://localhost:8080/期末题库.html`
+如果你在仓库根目录中查看本仓库自带示例，访问：
+- `http://localhost:8080/examples/deep-learning/复习笔记_考点版.html`
+- `http://localhost:8080/examples/deep-learning/期末题库.html`
+
+## `generate_review_page.py` 支持的两种页面
+
+### `split`
+双栏模式：左侧 PDF，右侧笔记。
+
+适合：
+- `复习笔记_考点版.md`
+- 教材联动复习
+
+### `standalone`
+单栏模式：不显示 PDF，只显示内容区。
+
+适合：
+- `期末题库.md`
+- 课程摘要
+- 独立整理页
 
 ## PDF 配置说明
 
@@ -163,39 +185,32 @@ DEFAULT_PDF_KEY = "default"
 ## 笔记中的页码写法
 
 支持两种格式：
-
 - `p105`：跳转默认 PDF 第 105 页
 - `讲义二 p42`：切换到 `讲义二` 后跳到第 42 页
 
 也支持范围写法：
 - `讲义二 p42-p48`
 
-## 适合放入仓库的内容
+## 仓库中放什么
 
-- 任意课程教材 PDF
-- 讲义、补充阅读、参考资料
-- 课堂转写文本
-- 考点整理笔记
-- 题库 Markdown
+适合长期保留在仓库里的内容：
+- 通用脚本和 skill 文档
+- 公开可分享的示例页面
+- 可公开分发的教材 / 讲义 / 参考 PDF
 
-## 典型产物
-
-- `复习笔记_考点版.md`
-- `复习笔记_考点版.html`
-- `期末题库.md`
-- `期末题库.html`
-- `课程摘要与知识点.md`
-- `extraction_pipeline.md`
-- `extracted/structured_lessons.json`
-- `extracted/structured_lessons.md`
+更适合放在 `coursework/` 或课程私有目录里的内容：
+- 实验过程脚本
+- 训练结果与模型文件
+- 课程作业草稿
+- 原始记录和临时文件
 
 ## 常见问题
 
-**Q: 为什么 PDF 打不开？**  
+**Q: 为什么 PDF 打不开？**
 A: 请用 `python3 -m http.server 8080` 启动本地服务，不要直接双击 HTML 用 `file://` 打开。
 
-**Q: 题库答案为什么没有折叠？**  
+**Q: 题库答案为什么没有折叠？**
 A: 请确认题目是 `#### 题N【题型】`，答案块以 `- **答案：**`、`- **答案要点：**` 或 `- **参考答案：**` 开头。
 
-**Q: 课堂转写能直接生成 HTML 吗？**  
-A: 建议先用 `lecture-transcript-review` 提炼成适合复习的 Markdown，再交给 `exam-review` 或 `exam-question-bank`。
+**Q: 文本框笔记会写进 PDF 吗？**
+A: 不会。它们是叠加在页面上的网页批注，保存在浏览器本地 `localStorage` 中。

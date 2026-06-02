@@ -16,6 +16,10 @@ script/
 
 # Assets
 assets/
+!examples/
+!examples/deep-learning/
+!examples/deep-learning/assets/
+!examples/deep-learning/assets/**
 
 # Experiments
 实验*.md
