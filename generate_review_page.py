@@ -22,9 +22,7 @@ import urllib.parse
 # label：左侧工具栏下拉框中显示的名称
 
 PDF_FILES = {
-    "讲义一":  {"file": "materials/博弈论补充讲义（一）.pdf", "offset": 0, "label": "讲义一：基础理论"},
-    "讲义三":  {"file": "materials/博弈论补充讲义（三）.pdf", "offset": 0, "label": "讲义三：静态博弈"},
-    "讲义六":  {"file": "materials/博弈论补充讲义（六）-.pdf", "offset": 0, "label": "讲义六：动态博弈"},
+    "教材":  {"file": "动手学深度学习-PyTorch(第二版) (Aston Zhang, Zachary C. Lipton, 李沐 etc.) (z-library.sk, 1lib.sk, z-lib.sk).pdf", "offset": 18, "label": "教材：《动手学深度学习》"},
     # 按实际 PDF 编辑：
     #   key     — 笔记中跨文件引用的标识，如 `讲义三 p42`
     #   file    — PDF 文件名（与脚本同目录，或相对路径）
@@ -33,11 +31,13 @@ PDF_FILES = {
 }
 
 # 默认打开的 PDF 标识（必须是 PDF_FILES 中的某个 key）
-DEFAULT_PDF_KEY = "讲义一"
+DEFAULT_PDF_KEY = "教材"
 
 # 输入/输出文件名
 INPUT_MD = "复习笔记_考点版.md"
 OUTPUT_HTML = "复习笔记_考点版.html"
+PAGE_TITLE = "考点笔记"
+PAGE_LAYOUT = "split"
 
 # ============================================================
 # PDF 自动扫描工具
@@ -124,7 +124,7 @@ def add_page_links(text, pdf_files, default_key):
 # HTML 模板
 # ============================================================
 
-def build_html(html_body, pdf_files, default_key):
+def build_html(html_body, pdf_files, default_key, page_title):
     pdf_config_json = json.dumps(pdf_files, ensure_ascii=False)
 
     # 生成 PDF 选择器选项
@@ -381,7 +381,7 @@ def build_html(html_body, pdf_files, default_key):
   <!-- 右侧笔记 -->
   <div class="note-panel">
     <div class="note-header">
-      <span>📝 考点笔记</span>
+      <span>📝 {page_title}</span>
       <div>
         <input type="text" id="searchInput" placeholder="搜索..." style="width:120px" onkeyup="if(event.key==='Enter')doSearch()">
         <button onclick="clearSearch()">✕</button>
@@ -725,6 +725,164 @@ loadPDF(DEFAULT_KEY, 1);
 """
     return html
 
+def build_standalone_html(html_body, page_title):
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+  * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+  body {{ font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif; background: #f5f7fb; color: #333; }}
+  .page {{ max-width: 1000px; margin: 0 auto; min-height: 100vh; background: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }}
+  .header {{ position: sticky; top: 0; z-index: 10; background: #2c3e50; color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }}
+  .header-title {{ font-size: 18px; font-weight: 700; }}
+  .header-actions {{ display: flex; gap: 8px; align-items: center; }}
+  .header input {{ padding: 6px 10px; border: 1px solid #555; border-radius: 4px; background: #1a1a1a; color: #fff; width: 180px; font-size: 13px; }}
+  .header button {{ background: #3498db; color: #fff; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }}
+  .header button:hover {{ background: #2980b9; }}
+  .content {{ padding: 24px 28px 48px; font-size: 15px; line-height: 1.8; }}
+  .content h1 {{ font-size: 28px; margin: 0 0 14px; color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 8px; }}
+  .content h2 {{ font-size: 22px; margin: 28px 0 12px; color: #e74c3c; border-bottom: 1px solid #e74c3c; padding-bottom: 6px; }}
+  .content h3 {{ font-size: 18px; margin: 20px 0 10px; color: #2980b9; background: #eaf2f8; padding: 8px 12px; border-radius: 6px; }}
+  .content p, .content li {{ margin: 6px 0; }}
+  .content ul, .content ol {{ padding-left: 22px; margin: 8px 0; }}
+  .content blockquote {{ border-left: 4px solid #2c3e50; margin: 12px 0; padding: 10px 14px; background: #f0f4f8; color: #555; }}
+  .content code {{ background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #c0392b; font-family: 'Consolas', monospace; }}
+  .content pre {{ background: #1f2430; color: #e6edf3; padding: 14px; border-radius: 8px; overflow-x: auto; margin: 10px 0 16px; }}
+  .content pre code {{ background: transparent; color: inherit; padding: 0; }}
+  .content table {{ border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; border: 1px solid #ddd; }}
+  .content th, .content td {{ border: 1px solid #ddd; padding: 8px 10px; vertical-align: top; }}
+  .content th {{ background: #34495e; color: #fff; white-space: nowrap; }}
+  .content tr:nth-child(even) {{ background: #f8f9fa; }}
+  .answer-block {{ margin: 10px 0 18px; border: 1px solid #d7e3f1; border-radius: 8px; background: #f8fbff; overflow: hidden; }}
+  .answer-block summary {{ list-style: none; cursor: pointer; padding: 10px 14px; font-weight: 600; color: #1f5f99; background: #eef6ff; user-select: none; }}
+  .answer-block summary::-webkit-details-marker {{ display: none; }}
+  .answer-block summary::before {{ content: '▶ '; }}
+  .answer-block[open] summary::before {{ content: '▼ '; }}
+  .answer-content {{ padding: 2px 14px 14px; }}
+  .answer-content > :first-child {{ margin-top: 8px; }}
+  .highlight-match {{ background: #ffff99; padding: 0 2px; }}
+  @media (max-width: 700px) {{
+    .header {{ flex-direction: column; align-items: stretch; }}
+    .header-actions {{ width: 100%; }}
+    .header input {{ width: 100%; flex: 1; }}
+    .content {{ padding: 18px 16px 36px; }}
+  }}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <div class="header-title">📝 {page_title}</div>
+    <div class="header-actions">
+      <input type="text" id="searchInput" placeholder="搜索题目/答案..." onkeyup="if(event.key==='Enter')doSearch()">
+      <button onclick="doSearch()">搜索</button>
+      <button onclick="clearSearch()">清空</button>
+    </div>
+  </div>
+  <div class="content" id="noteContent">
+{html_body}
+  </div>
+</div>
+<script>
+function isAnswerStart(el) {{
+    if (!el) return false;
+    var text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    return text.startsWith('答案：') || text.startsWith('答案要点：') || text.startsWith('参考答案：');
+}}
+
+function wrapAnswers() {{
+    var content = document.getElementById('noteContent');
+    if (!content) return;
+    var headings = content.querySelectorAll('h4');
+    headings.forEach(function(heading) {{
+        var current = heading.nextElementSibling;
+        var answerStart = null;
+        while (current && current.tagName !== 'H2' && current.tagName !== 'H3' && current.tagName !== 'H4' && current.tagName !== 'HR') {{
+            if (isAnswerStart(current)) {{
+                answerStart = current;
+                break;
+            }}
+            current = current.nextElementSibling;
+        }}
+        if (!answerStart) return;
+        if (answerStart.previousElementSibling && answerStart.previousElementSibling.classList && answerStart.previousElementSibling.classList.contains('answer-block')) return;
+
+        var details = document.createElement('details');
+        details.className = 'answer-block';
+        var summary = document.createElement('summary');
+        summary.textContent = '点击展开答案';
+        var answerContent = document.createElement('div');
+        answerContent.className = 'answer-content';
+        details.appendChild(summary);
+        details.appendChild(answerContent);
+        answerStart.parentNode.insertBefore(details, answerStart);
+
+        current = answerStart;
+        while (current && current.tagName !== 'H2' && current.tagName !== 'H3' && current.tagName !== 'H4' && current.tagName !== 'HR') {{
+            var next = current.nextElementSibling;
+            answerContent.appendChild(current);
+            current = next;
+        }}
+    }});
+}}
+
+function doSearch() {{
+    var query = document.getElementById('searchInput').value.trim().toLowerCase();
+    var content = document.getElementById('noteContent');
+    content.innerHTML = content.innerHTML.replace(/<span class="highlight-match">(.*?)<\\/span>/g, '$1');
+    if (!query) return;
+    var walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+    var nodes = [];
+    while (walker.nextNode()) {{
+        var node = walker.currentNode;
+        if (!node.nodeValue.trim()) continue;
+        if (node.parentNode && node.parentNode.classList && node.parentNode.classList.contains('highlight-match')) continue;
+        if (node.parentNode && ['SCRIPT', 'STYLE'].includes(node.parentNode.tagName)) continue;
+        nodes.push(node);
+    }}
+    nodes.forEach(function(node) {{
+        var text = node.nodeValue;
+        var lower = text.toLowerCase();
+        var idx = lower.indexOf(query);
+        if (idx >= 0) {{
+            var span = document.createElement('span');
+            span.innerHTML = text.slice(0, idx) + '<span class="highlight-match">' + text.slice(idx, idx + query.length) + '</span>' + text.slice(idx + query.length);
+            node.parentNode.replaceChild(span, node);
+        }}
+    }});
+}}
+function clearSearch() {{
+    document.getElementById('searchInput').value = '';
+    var c = document.getElementById('noteContent');
+    c.innerHTML = c.innerHTML.replace(/<span class="highlight-match">(.*?)<\\/span>/g, '$1');
+}}
+document.addEventListener('DOMContentLoaded', function() {{
+    wrapAnswers();
+    if (window.renderMathInElement) {{
+        renderMathInElement(document.body, {{
+            delimiters: [
+                {{left: '$$', right: '$$', display: true}},
+                {{left: '$', right: '$', display: false}},
+                {{left: '\\(', right: '\\)', display: false}},
+                {{left: '\\[', right: '\\]', display: true}}
+            ],
+            throwOnError: false
+        }});
+    }}
+}});
+</script>
+</body>
+</html>
+"""
+
 # ============================================================
 # CLI 入口
 # ============================================================
@@ -738,11 +896,46 @@ def main():
         print_config_template(scanned)
         sys.exit(0)
 
-    if not os.path.exists(INPUT_MD):
-        print(f"❌ 未找到笔记文件: {INPUT_MD}")
+    input_md = INPUT_MD
+    output_html = OUTPUT_HTML
+    page_title = PAGE_TITLE
+    page_layout = PAGE_LAYOUT
+
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg == "--scan":
+            i += 1
+            continue
+        if arg == "--input" and i + 1 < len(args):
+            input_md = args[i + 1]
+            i += 2
+            continue
+        if arg == "--output" and i + 1 < len(args):
+            output_html = args[i + 1]
+            i += 2
+            continue
+        if arg == "--title" and i + 1 < len(args):
+            page_title = args[i + 1]
+            i += 2
+            continue
+        if arg == "--layout" and i + 1 < len(args):
+            page_layout = args[i + 1]
+            i += 2
+            continue
+        print(f"❌ 不支持的参数: {arg}")
         sys.exit(1)
 
-    with open(INPUT_MD, "r", encoding="utf-8") as f:
+    if page_layout not in {"split", "standalone"}:
+        print(f"❌ 不支持的布局: {page_layout}（可选：split / standalone）")
+        sys.exit(1)
+
+    if not os.path.exists(input_md):
+        print(f"❌ 未找到笔记文件: {input_md}")
+        sys.exit(1)
+
+    with open(input_md, "r", encoding="utf-8") as f:
         md_content = f.read()
 
     md_content = re.sub(r'!\[.*?\]\(.*?\)', '', md_content)
@@ -754,22 +947,32 @@ def main():
     )
 
     html_body = add_page_links(html_body, PDF_FILES, DEFAULT_PDF_KEY)
-    html = build_html(html_body, PDF_FILES, DEFAULT_PDF_KEY)
+    if page_layout == "standalone":
+        html = build_standalone_html(html_body, page_title)
+    else:
+        html = build_html(html_body, PDF_FILES, DEFAULT_PDF_KEY, page_title)
 
-    with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
+    with open(output_html, "w", encoding="utf-8") as f:
         f.write(html)
 
-    print(f"✅ 已生成: {OUTPUT_HTML}")
-    print(f"   PDF 配置: {len(PDF_FILES)} 个文件")
-    print(f"   默认 PDF: {DEFAULT_PDF_KEY}")
-    print()
-    print("⚠️  请用 HTTP 服务器打开：")
-    print()
-    print("   python3 -m http.server 8080")
-    print(f"   浏览器访问: http://localhost:8080/{OUTPUT_HTML}")
-    print()
-    print("   功能：← → 翻页  |  Ctrl+滚轮 缩放  |  下拉切换PDF  |  笔记页码跳转")
-    print("   跨文件跳转：笔记中写「讲义三 p42」即可自动切换PDF+跳转")
+    print(f"✅ 已生成: {output_html}")
+    print(f"   来源 Markdown: {input_md}")
+    print(f"   页面标题: {page_title}")
+    print(f"   页面布局: {page_layout}")
+    if page_layout == "split":
+        print(f"   PDF 配置: {len(PDF_FILES)} 个文件")
+        print(f"   默认 PDF: {DEFAULT_PDF_KEY}")
+        print()
+        print("⚠️  请用 HTTP 服务器打开：")
+        print()
+        print("   python3 -m http.server 8080")
+        print(f"   浏览器访问: http://localhost:8080/{output_html}")
+        print()
+        print("   功能：← → 翻页  |  Ctrl+滚轮 缩放  |  下拉切换PDF  |  笔记页码跳转")
+        print("   跨文件跳转：笔记中写「讲义三 p42」即可自动切换PDF+跳转")
+    else:
+        print()
+        print("⚠️  题库页为单栏模式，不显示左侧教材 PDF。")
 
 
 if __name__ == "__main__":
